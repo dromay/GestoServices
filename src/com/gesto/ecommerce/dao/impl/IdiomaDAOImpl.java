@@ -37,7 +37,8 @@ public class IdiomaDAOImpl implements IdiomaDAO {
 		try {
 
 			String queryString = "SELECT idm.cod_idioma, idm.descripcion " + "FROM idioma idm "
-					+ " INNER JOIN empleado em ON idm.cod_idioma = em.cod_idioma AND em.cod_empleado = ? ";
+					+ " INNER JOIN idioma_empleado ie ON ie.cod_idioma = idm.cod_idioma"
+					+ " INNER JOIN empleado em ON ie.cod_empleado = em.cod_empleado AND em.cod_empleado = ? ";
 
 			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
@@ -72,7 +73,8 @@ public class IdiomaDAOImpl implements IdiomaDAO {
 		try {
 
 			String queryString = "SELECT idm.cod_idioma, idm.descripcion " + "FROM idioma idm "
-					+ " INNER JOIN cliente c ON c.cod_idioma = em.cod_idioma AND em.cod_cliente = ? ";
+					+ " INNER JOIN idioma_cliente idc ON idc.cod_idioma = idm.cod_idioma "
+					+ " INNER JOIN cliente c ON idc.cod_cliente = c.cod_cliente AND c.cod_cliente = ? ";
 
 			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);

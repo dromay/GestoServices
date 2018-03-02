@@ -230,13 +230,20 @@ public class ClienteDAOImpl implements ClienteDAO {
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-
+			
+			if (cliente.getClienteId() != null)
 			preparedStatement.setString(i++, "%" + cliente.getClienteId() + "%");
+			if (cliente.getTipo() != null)
 			preparedStatement.setString(i++, "%" + cliente.getTipo() + "%");
+			if (cliente.getNombre() != null)
 			preparedStatement.setString(i++, "%" + cliente.getNombre() + "%");
+			if (cliente.getDocIdentidad() != null)
 			preparedStatement.setString(i++, "%" + cliente.getDocIdentidad() + "%");
+			if (cliente.getContactos() != null)
 			preparedStatement.setString(i++, "%" + cliente.getContactos() + "%");
+			if (cliente.getIdiomas() != null)
 			preparedStatement.setString(i++, "%" + cliente.getIdiomas() + "%");
+			if (cliente.getGestiones() != null)
 			preparedStatement.setString(i++, "%" + cliente.getGestiones() + "%");
 
 			resultSet = preparedStatement.executeQuery();

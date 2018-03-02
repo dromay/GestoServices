@@ -94,8 +94,8 @@ public class ContactoDAOImpl implements ContactoDAO {
 
 		try {
 
-			String queryString = "SELECT co.contactoCod, co.nombre, co.apellido, co.correo, co.tlf  "
-					+ "FROM contacto co " + " INNER JOIN cliente_contacto cco ON cco.contactoCod = co.contactoCod "
+			String queryString = "SELECT co.cod_contacto, co.nombre, co.apellido, co.correo, co.tlf  "
+					+ "FROM contacto co " + " INNER JOIN cliente_contacto cco ON cco.cod_contacto = co.cod_contacto "
 					+ " INNER JOIN cliente c " + " 	ON c.cod_cliente = cco.cod_cliente AND c.cod_cliente = ? ";
 
 			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -131,8 +131,8 @@ public class ContactoDAOImpl implements ContactoDAO {
 
 		try {
 
-			String queryString = "SELECT co.contactoCod, co.nombre, co.apellido, co.correo, co.tlf  "
-					+ "FROM contacto co " + " INNER JOIN cliente_contacto cco ON cco.contactoCod = co.contactoCod "
+			String queryString = "SELECT co.cod_contacto, co.nombre, co.apellido, co.correo, co.tlf  "
+					+ "FROM contacto co " + " INNER JOIN cliente_contacto cco ON cco.cod_contacto = co.cod_contacto "
 					+ " INNER JOIN cliente c " + " 	ON c.cod_cliente = cco.cod_cliente"
 					+ " INNER JOIN gestion g " + " 	ON g.cod_cliente = c.cod_cliente AND g.cod_gestion = ? ";
 

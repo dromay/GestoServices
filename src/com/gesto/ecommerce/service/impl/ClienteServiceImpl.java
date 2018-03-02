@@ -4,222 +4,112 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.sacra.ecommerce.dao.ClienteDAO;
-import com.sacra.ecommerce.dao.impl.ClienteDAOImpl;
-import com.sacra.ecommerce.dao.util.ConnectionManager;
-import com.sacra.ecommerce.dao.util.JDBCUtils;
-import com.sacra.ecommerce.exceptions.DataException;
-import com.sacra.ecommerce.exceptions.DuplicateInstanceException;
-import com.sacra.ecommerce.exceptions.InstanceNotFoundException;
-import com.sacra.ecommerce.model.Cliente;
-import com.sacra.ecommerce.service.ClienteCriteria;
-import com.sacra.ecommerce.service.ClienteService;
+import com.gesto.ecommerce.dao.ClienteDAO;
+import com.gesto.ecommerce.dao.impl.ClienteDAOImpl;
+import com.gesto.ecommerce.dao.util.ConnectionManager;
+import com.gesto.ecommerce.dao.util.JDBCUtils;
+import com.gesto.ecommerce.exceptions.DataException;
+import com.gesto.ecommerce.exceptions.InstanceNotFoundException;
+import com.gesto.ecommerce.model.Cliente;
+import com.gesto.ecommerce.service.ClienteCriteria;
+import com.gesto.ecommerce.service.ClienteService;
 
 public class ClienteServiceImpl implements ClienteService {
-	
+
 	private ClienteDAO dao = null;
-		
-		public ClienteServiceImpl() {
-			dao = new ClienteDAOImpl();
-		}
-		
-		public Cliente findById(String id) 
-				throws InstanceNotFoundException, DataException {
-					
-			Connection connection = null;
-			
-			try {
-				
-				connection = ConnectionManager.getConnection();
-				connection.setAutoCommit(true);
-				
-				return dao.findById(connection, id);	
-				
-			} catch (SQLException e){
-				throw new DataException(e);
-			} finally {
-				JDBCUtils.closeConnection(connection);
-			}
-			
-		}
 
-		public Boolean exists(String id) 
-				throws DataException {
-					
-			Connection connection = null;
-			
-			try {
-				
-				connection = ConnectionManager.getConnection();
-				connection.setAutoCommit(true);
-				
-				return dao.exists(connection, id);
-				
-			} catch (SQLException e){
-				throw new DataException(e);
-			} finally {
-				JDBCUtils.closeConnection(connection);
-			}
-			
-		}
+	public ClienteServiceImpl() {
+		dao = new ClienteDAOImpl();
+	}
+	
+		@Override
+		public Cliente findById(Long clienteId) throws InstanceNotFoundException, DataException {
 
-		public List<Cliente> findAll(int startIndex, int count) 
-				throws DataException {
-				
 			Connection connection = null;
-			
+
 			try {
-				
+
 				connection = ConnectionManager.getConnection();
 				connection.setAutoCommit(true);
-				
-				return dao.findAll(connection, startIndex, count);	
-				
-			} catch (SQLException e){
-				throw new DataException(e);
-			} finally {
-				JDBCUtils.closeConnection(connection);
-			}
-			
-		}
-		
-		public long countAll() 
-				throws DataException {
-					
-			Connection connection = null;
-			
-			try {
-				
-				connection = ConnectionManager.getConnection();
-				connection.setAutoCommit(true);
-				
-				return dao.countAll(connection);		
-				
-			} catch (SQLException e){
-				throw new DataException(e);
-			} finally {
-				JDBCUtils.closeConnection(connection);
-			}
-			
-		}
-		
-		public List<Cliente> findByNombre(String nombre, int startIndex, int count)
-				throws DataException {
-				
-			Connection connection = null;
-			
-			try {
-				
-				connection = ConnectionManager.getConnection();
-				connection.setAutoCommit(true);
-				
-				return dao.findByNombre(connection, nombre, startIndex, count);
-				
-			} catch (SQLException e){
-				throw new DataException(e);
-			} finally {
-				JDBCUtils.closeConnection(connection);
-			}
-		}
-		
-	     public List<Cliente> findByCriteria(ClienteCriteria cliente, int startIndex, int count)
-				throws DataException {
-				
-			Connection connection = null;
-			
-			try {
-				
-				connection = ConnectionManager.getConnection();
-				connection.setAutoCommit(true);
-				
-				return dao.findByCriteria(connection, cliente, startIndex, count);
-				
-			} catch (SQLException e){
+
+				return dao.findById(connection, clienteId);
+
+			} catch (SQLException e) {
 				throw new DataException(e);
 			} finally {
 				JDBCUtils.closeConnection(connection);
 			}
 		}
 
-		public Cliente create(Cliente c) 
-				throws DuplicateInstanceException, DataException {
-			
-		    Connection connection = null;
-	        boolean commit = false;
+		@Override
+		public Boolean exists(Long clienteId) throws DataException {
+			Connection connection = null;
 
-	        try {
-	          
-	            connection = ConnectionManager.getConnection();
+			try {
 
-	            connection.setTransactionIsolation(
-	                    Connection.TRANSACTION_READ_COMMITTED);
+				connection = ConnectionManager.getConnection();
+				connection.setAutoCommit(true);
 
-	            connection.setAutoCommit(false);
+				return dao.exists(connection, clienteId);
 
-	            // Execute action
-	            Cliente result = dao.create(connection, c);
-	            commit = true;
-	            
-	            return result;
-
-	        } catch (SQLException e) {
-	            throw new DataException(e);
-
-	        } finally {
-	        	JDBCUtils.closeConnection(connection, commit);
-	        }		
+			} catch (SQLException e) {
+				throw new DataException(e);
+			} finally {
+				JDBCUtils.closeConnection(connection);
+			}
 		}
 
-		public void update(Cliente c) 
-				throws InstanceNotFoundException, DataException {
-			
-		    Connection connection = null;
-	        boolean commit = false;
+		@Override
+		public List<Cliente> findAll(int startIndex, int count) throws DataException {
+			Connection connection = null;
 
-	        try {
-	          
-	            connection = ConnectionManager.getConnection();
+			try {
 
-	            connection.setTransactionIsolation(
-	                    Connection.TRANSACTION_READ_COMMITTED);
+				connection = ConnectionManager.getConnection();
+				connection.setAutoCommit(true);
 
-	            connection.setAutoCommit(false);
+				return dao.findAll(connection, startIndex, count);
 
-	            dao.update(connection, c);
-	            commit = true;
-	            
-	        } catch (SQLException e) {
-	            throw new DataException(e);
-
-	        } finally {
-	        	JDBCUtils.closeConnection(connection, commit);
-	        }
+			} catch (SQLException e) {
+				throw new DataException(e);
+			} finally {
+				JDBCUtils.closeConnection(connection);
+			}
 		}
 
-		public long delete(String id) 
-				throws InstanceNotFoundException, DataException {
-			
-		    Connection connection = null;
-	        boolean commit = false;
+		@Override
+		public long countAll() throws DataException {
+			Connection connection = null;
 
-	        try {
-	          
-	            connection = ConnectionManager.getConnection();
+			try {
 
-	            connection.setTransactionIsolation(
-	                    Connection.TRANSACTION_READ_COMMITTED);
+				connection = ConnectionManager.getConnection();
+				connection.setAutoCommit(true);
 
-	            connection.setAutoCommit(false);
+				return dao.countAll(connection);
 
-	            	            long result = dao.delete(connection, id);            
-	            commit = true;            
-	            return result;
-	            
-	        } catch (SQLException e) {
-	            throw new DataException(e);
+			} catch (SQLException e) {
+				throw new DataException(e);
+			} finally {
+				JDBCUtils.closeConnection(connection);
+			}
+		}
 
-	        } finally {
-	        	JDBCUtils.closeConnection(connection, commit);
-	        }		
+		@Override
+		public List<Cliente> findByCriteria(ClienteCriteria c, int startIndex, int count) throws DataException {
+			Connection connection = null;
+
+			try {
+
+				connection = ConnectionManager.getConnection();
+				connection.setAutoCommit(true);
+
+				return dao.findByCriteria(connection, c, startIndex, count);
+
+			} catch (SQLException e) {
+				throw new DataException(e);
+			} finally {
+				JDBCUtils.closeConnection(connection);
+			}
 		}
 }

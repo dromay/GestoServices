@@ -39,8 +39,9 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 		ResultSet resultSet = null;
 
 		try {
-			String queryString = "SELECT d.CustomerTypeID, d.CustomerDesc " + "FROM customerdemographics d "
-					+ "WHERE d.CustomerTypeID = ? ";
+			String queryString =  " SELECT em.cod_empleado, em.usuario, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja"
+					+ " FROM empleado em "
+					+ "WHERE em.cod_empleado = ? ";
 
 			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
@@ -77,8 +78,9 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 
 		try {
 
-			String queryString = "SELECT d.CustomerTypeID, d.CustomerDesc " + "FROM customerdemographics d "
-					+ "WHERE d.CustomerTypeID = ? ";
+			String queryString = " SELECT em.cod_empleado, em.usuario, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja"
+					+ " FROM empleado em "
+					+ "WHERE em.cod_empleado = ? ";
 
 			preparedStatement = connection.prepareStatement(queryString);
 
@@ -109,7 +111,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 
 		try {
 
-			String queryString = " SELECT count(*) " + " FROM CustomersDemographics";
+			String queryString = " SELECT count(*) " + " FROM empleado";
 
 			preparedStatement = connection.prepareStatement(queryString);
 
@@ -210,17 +212,28 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-
+			
+			if (empleado.getId() != null)
 			preparedStatement.setString(i++, "%" + empleado.getId() + "%");
+			if (empleado.getUsuario() != null)
 			preparedStatement.setString(i++, "%" + empleado.getUsuario() + "%");
+			if (empleado.getNombre() != null)
 			preparedStatement.setString(i++, "%" + empleado.getNombre() + "%");
+			if (empleado.getApellido() != null)
 			preparedStatement.setString(i++, "%" + empleado.getApellido() + "%");
+			if (empleado.getExtDepartamento() != null)
 			preparedStatement.setString(i++, "%" + empleado.getExtDepartamento() + "%");
+			if (empleado.getExt() != null)
 			preparedStatement.setString(i++, "%" + empleado.getExt() + "%");
+			if (empleado.getSupervisor() != null)
 			preparedStatement.setString(i++, "%" + empleado.getSupervisor() + "%");
+			if (empleado.getFechaBaja() != null)
 			preparedStatement.setString(i++, "%" + empleado.getFechaBaja() + "%");
+			if (empleado.getGestiones() != null)
 			preparedStatement.setString(i++, "%" + empleado.getGestiones() + "%");
+			if (empleado.getTickets() != null)
 			preparedStatement.setString(i++, "%" + empleado.getTickets() + "%");
+			if (empleado.getIdiomas() != null)
 			preparedStatement.setString(i++, "%" + empleado.getIdiomas() + "%");
 
 			resultSet = preparedStatement.executeQuery();

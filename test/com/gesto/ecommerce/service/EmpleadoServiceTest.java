@@ -1,12 +1,14 @@
-package test.com.gesto.ecommerce.service;
+package com.gesto.ecommerce.service;
 
 import java.util.List;
 
-import src.com.gesto.ecommerce.model.Empleado;
-import src.com.gesto.ecommerce.service.impl.EmpleadoServiceImpl;
-import src.com.gesto.ecommerce.util.ToStringUtil;
+import com.gesto.ecommerce.model.Empleado;
+import com.gesto.ecommerce.service.EmpleadoCriteria;
+import com.gesto.ecommerce.service.EmpleadoService;
+import com.gesto.ecommerce.service.impl.EmpleadoServiceImpl;
+import com.gesto.ecommerce.util.ToStringUtil;
 
-
+ 
 class EmpleadoServiceTest {
 	private EmpleadoService empleadoService = null;
 	
@@ -51,37 +53,6 @@ class EmpleadoServiceTest {
 		System.out.println("Test exists finished.\n");		
 	}
 	
-	protected void testFindAll() {
-		System.out.println("Testing findAll ...");
-		int pageSize = 10; 	
-		
-		try {
-
-			List<Empleado> results = null;
-			int startIndex = 1; 
-			int total = 0;
-			
-			do {
-				results = empleadoService.findAll(startIndex, pageSize);
-				if (results.size()>0) {
-					System.out.println("Page ["+startIndex+" - "+(startIndex+results.size()-1)+"] : ");				
-					for (Empleado e: results) {
-						total++;
-						System.out.println("Result "+total+": "+ToStringUtil.toString(e));
-					}
-					startIndex = startIndex + pageSize;
-				}
-				
-			} while (results.size()==pageSize);
-			
-			System.out.println("Found "+total+" results.");
-						
-		} catch (Throwable c) {
-			c.printStackTrace();
-		}
-		System.out.println("Test testFindAll finished.\n");
-	}
-	
 	protected void testFindByCriteria() {
 		System.out.println("Testing FindByCriteria ...");
 		int pageSize = 2;
@@ -100,7 +71,7 @@ class EmpleadoServiceTest {
 				results = empleadoService.findByCriteria(em, startIndex, pageSize);
 				if (results.size()>0) {
 					System.out.println("Page ["+startIndex+" - "+(startIndex+results.size()-1)+"] : ");				
-					for (Empleado em: results) {
+					for (Empleado e: results) {
 						total++;
 						System.out.println("Result "+total+": "+ToStringUtil.toString(em));
 					}
@@ -123,9 +94,7 @@ class EmpleadoServiceTest {
 		EmpleadoServiceTest test = new EmpleadoServiceTest();
 		test.testFindById();	
 		test.testExists();
-		test.testFindAll();
 		test.testFindByCriteria();
 
 	}
-	
 }

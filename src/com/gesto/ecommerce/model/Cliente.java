@@ -16,6 +16,8 @@ public class Cliente {
 
 	public Cliente() {
 		contactos = new ArrayList<Contacto>();
+		idiomas= new ArrayList<Idioma>();
+		gestiones= new ArrayList<Gestion>();
 	}
 
 	public Long getClienteId() {
