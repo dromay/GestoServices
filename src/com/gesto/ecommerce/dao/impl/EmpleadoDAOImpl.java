@@ -8,46 +8,46 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.gesto.ecommerce.dao.EmpleadoDAO;
-import com.gesto.ecommerce.dao.GestionDAO;
 import com.gesto.ecommerce.dao.IdiomaDAO;
-import com.gesto.ecommerce.dao.TicketDAO;
-import com.gesto.ecommerce.model.Empleado;
-import com.gesto.ecommerce.model.Gestion;
-import com.gesto.ecommerce.model.Idioma;
-import com.gesto.ecommerce.model.Ticket;
-import com.gesto.ecommerce.service.EmpleadoCriteria;
 import com.gesto.ecommerce.dao.util.JDBCUtils;
 import com.gesto.ecommerce.exceptions.DataException;
 import com.gesto.ecommerce.exceptions.InstanceNotFoundException;
+import com.gesto.ecommerce.model.Empleado;
+import com.gesto.ecommerce.model.Idioma;
+import com.gesto.ecommerce.service.EmpleadoCriteria;
+
 
 public class EmpleadoDAOImpl implements EmpleadoDAO {
-	private TicketDAO ticketDAO = null;
+
+	private static Logger logger = LogManager.getLogger(EmpleadoDAOImpl.class.getName());
+	
 	private IdiomaDAO idiomaDAO = null;
-	private GestionDAO gestionDAO = null;
 
 	public EmpleadoDAOImpl() {
-		ticketDAO = new TicketDAOImpl();
 		idiomaDAO = new IdiomaDAOImpl();
-		gestionDAO = new GestionDAOImpl();
 	}
 
 	@Override
-	public Empleado findById(Connection connection, Long id) throws InstanceNotFoundException, DataException {
+	public Empleado findByUsuario(Connection connection, String usuario)
+			throws InstanceNotFoundException, DataException {
 
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
-			String queryString =  " SELECT em.cod_empleado, em.usuario, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja"
-					+ " FROM empleado em "
-					+ "WHERE em.cod_empleado = ? ";
+			String queryString = " SELECT em.cod_empleado, em.usuario, em.password, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja "
+					+ " FROM empleado em " + "WHERE em.usuario = ? ";
 
 			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			preparedStatement.setLong(i++, id);
+			preparedStatement.setString(i++, usuario);
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -56,185 +56,36 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 			if (resultSet.next()) {
 				em = loadNext(connection, resultSet);
 			} else {
-				throw new InstanceNotFoundException("Customer with id " + id + "not found", Empleado.class.getName());
+				logger.error("Employee with user " + usuario + "not found ",
+						Empleado.class.getName());
+				throw new InstanceNotFoundException("Employee with user " + usuario + "not found ",
+						Empleado.class.getName());
 			}
 
 			return em;
 
 		} catch (SQLException e) {
+			logger.error("User: " + usuario, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
 			JDBCUtils.closeStatement(preparedStatement);
 		}
 	}
-
+	
 	@Override
-	public Boolean exists(Connection connection, Long id) throws DataException {
-		boolean exist = false;
+	public List<Empleado> findAll(Connection connection, int startIndex, int count) throws DataException {
 
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
 
-			String queryString = " SELECT em.cod_empleado, em.usuario, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja"
-					+ " FROM empleado em "
-					+ "WHERE em.cod_empleado = ? ";
+			String queryString = " SELECT em.cod_empleado, em.usuario, em.password, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja "
+					+ " FROM empleado em " + "ORDER BY em.cod_empleado ASC ";
 
-			preparedStatement = connection.prepareStatement(queryString);
-
-			int i = 1;
-			preparedStatement.setLong(i++, id);
-
-			resultSet = preparedStatement.executeQuery();
-
-			if (resultSet.next()) {
-				exist = true;
-			}
-
-		} catch (SQLException e) {
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-
-		return exist;
-	}
-
-	@Override
-	public long countAll(Connection connection) throws DataException {
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = " SELECT count(*) " + " FROM empleado";
-
-			preparedStatement = connection.prepareStatement(queryString);
-
-			resultSet = preparedStatement.executeQuery();
-
-			int i = 1;
-			if (resultSet.next()) {
-				return resultSet.getLong(i++);
-			} else {
-				throw new DataException("Unexpected condition trying to retrieve count value");
-			}
-
-		} catch (SQLException e) {
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-	}
-
-	@Override
-	public List<Empleado> findByCriteria(Connection connection, EmpleadoCriteria empleado, int startIndex, int count)
-			throws DataException {
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-		StringBuilder queryString = null;
-
-		try {
-
-			queryString = new StringBuilder(
-					" SELECT em.cod_empleado, em.usuario, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja , i.cod_idioma "
-							+ " FROM empleado em " + " INNER JOIN gestion g ON em.cod_empleado = g.cod_empleado "
-							+ " INNER JOIN ticket t ON t.cod_empleado = em.cod_empleado "
-							+ " INNER JOIN departamento d ON d.ext_departamento = em.ext_departamento "
-							+ " INNER JOIN idioma_empleado ie ON ie.cod_empleado = em.cod_empleado "
-							+ " INNER JOIN idioma i ON i.cod_idioma = ie.cod_idioma ");
-
-			// Marca (flag) de primera clausula, que se desactiva en la primera
-			boolean first = true;
-
-			if (empleado.getId() != null) {
-				addClause(queryString, first, " UPPER(em.cod_empleado) LIKE ? ");
-				first = false;
-			}
-
-			if (empleado.getUsuario() != null) {
-				addClause(queryString, first, " UPPER(em.usuario) LIKE ? ");
-				first = false;
-			}
-
-			if (empleado.getNombre() != null) {
-				addClause(queryString, first, " UPPER(g.nombre) LIKE ? ");
-				first = false;
-			}
-
-			if (empleado.getApellido() != null) {
-				addClause(queryString, first, " UPPER(g.apellido) LIKE ? ");
-				first = false;
-			}
-
-			if (empleado.getExtDepartamento() != null) {
-				addClause(queryString, first, " UPPER(g.ext_departamento) LIKE ? ");
-				first = false;
-			}
-
-			if (empleado.getExt() != null) {
-				addClause(queryString, first, " UPPER(g.ext) LIKE ? ");
-				first = false;
-			}
-
-			if (empleado.getSupervisor() != null) {
-				addClause(queryString, first, " UPPER(g.supervisor) LIKE ? ");
-				first = false;
-			}
-
-			if (empleado.getFechaBaja() != null) {
-				addClause(queryString, first, " UPPER(g.cod_empresa) LIKE ? ");
-				first = false;
-			}
-
-			if (empleado.getGestiones().isEmpty()) {
-				addClause(queryString, first, " UPPER(g.cod_empleado) LIKE ? ");
-				first = false;
-			}
-
-			if (empleado.getTickets().isEmpty()) {
-				addClause(queryString, first, " UPPER(t.cod_empleado) LIKE ? ");
-				first = false;
-			}
-
-			if (empleado.getIdiomas().isEmpty()) {
-				addClause(queryString, first, " UPPER(i.cod_idioma) LIKE ? ");
-				first = false;
-			}
-
-			preparedStatement = connection.prepareStatement(queryString.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE,
+			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
-
-			int i = 1;
-			
-			if (empleado.getId() != null)
-			preparedStatement.setString(i++, "%" + empleado.getId() + "%");
-			if (empleado.getUsuario() != null)
-			preparedStatement.setString(i++, "%" + empleado.getUsuario() + "%");
-			if (empleado.getNombre() != null)
-			preparedStatement.setString(i++, "%" + empleado.getNombre() + "%");
-			if (empleado.getApellido() != null)
-			preparedStatement.setString(i++, "%" + empleado.getApellido() + "%");
-			if (empleado.getExtDepartamento() != null)
-			preparedStatement.setString(i++, "%" + empleado.getExtDepartamento() + "%");
-			if (empleado.getExt() != null)
-			preparedStatement.setString(i++, "%" + empleado.getExt() + "%");
-			if (empleado.getSupervisor() != null)
-			preparedStatement.setString(i++, "%" + empleado.getSupervisor() + "%");
-			if (empleado.getFechaBaja() != null)
-			preparedStatement.setString(i++, "%" + empleado.getFechaBaja() + "%");
-			if (empleado.getGestiones() != null)
-			preparedStatement.setString(i++, "%" + empleado.getGestiones() + "%");
-			if (empleado.getTickets() != null)
-			preparedStatement.setString(i++, "%" + empleado.getTickets() + "%");
-			if (empleado.getIdiomas() != null)
-			preparedStatement.setString(i++, "%" + empleado.getIdiomas() + "%");
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -253,6 +104,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 			return results;
 
 		} catch (SQLException e) {
+			logger.error(e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -260,8 +112,256 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 		}
 	}
 
+	@Override
+	public Boolean exists(Connection connection, Long id) throws DataException {
+		boolean exist = false;
+
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
+		try {
+
+			String queryString = " SELECT em.cod_empleado, em.usuario, em.password, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja "
+					+ " FROM empleado em " + "WHERE em.cod_empleado = ? ";
+
+			preparedStatement = connection.prepareStatement(queryString);
+
+			int i = 1;
+			preparedStatement.setLong(i++, id);
+
+			resultSet = preparedStatement.executeQuery();
+
+			if (resultSet.next()) {
+				exist = true;
+			}
+
+		} catch (SQLException e) {
+			logger.error("Employee ID: " + id, e);
+			throw new DataException(e);
+		} finally {
+			JDBCUtils.closeResultSet(resultSet);
+			JDBCUtils.closeStatement(preparedStatement);
+		}
+
+		return exist;
+	}
+
+	@Override
+	public long countAll(Connection connection) throws DataException {
+
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
+		try {
+
+			String queryString = " SELECT count(*) " + " FROM empleado ";
+
+			preparedStatement = connection.prepareStatement(queryString);
+
+			resultSet = preparedStatement.executeQuery();
+
+			int i = 1;
+			if (resultSet.next()) {
+				return resultSet.getLong(i++);
+			} else {
+				logger.error("Unexpected condition trying to retrieve count value");
+				throw new DataException("Unexpected condition trying to retrieve count value");
+			}
+
+		} catch (SQLException e) {
+			logger.error(e);
+			throw new DataException(e);
+		} finally {
+			JDBCUtils.closeResultSet(resultSet);
+			JDBCUtils.closeStatement(preparedStatement);
+		}
+	}
+
+	@Override
+	public List<Empleado> findByCriteria(Connection connection, EmpleadoCriteria criteria, int startIndex, int count)
+			throws DataException {
+
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		StringBuilder queryString = null;
+
+		try {
+
+			queryString = new StringBuilder(
+					" SELECT em.cod_empleado, em.usuario, em.password, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja"
+							+ " FROM empleado em ");
+
+			// Marca (flag) de primera clausula, que se desactiva en la primera
+			boolean first = true;
+
+			if (criteria.getIdTicketCriteria() != null) {
+				addClause2(queryString, first, " INNER JOIN ticket t ON t.cod_empleado = em.cod_empleado ");
+				first = false;
+			}
+			if (criteria.getIdGestionCriteria() != null) {
+				addClause2(queryString, first, " INNER JOIN gestion g ON em.cod_empleado = g.cod_empleado ");
+				first = false;
+			}
+			if (criteria.getIdIdiomaCriteria() != null) {
+				addClause2(queryString, first, " INNER JOIN idioma_empleado ie ON ie.cod_empleado = em.cod_empleado ");
+				addClause2(queryString, first, " INNER JOIN idioma i ON i.cod_idioma = ie.cod_idioma ");
+				first = false;
+			}
+
+			if (criteria.getId() != null) {
+				addClause(queryString, first, " UPPER(em.cod_empleado) LIKE ? ");
+				first = false;
+			}
+
+			if (criteria.getUsuario() != null) {
+				addClause(queryString, first, " UPPER(em.usuario) LIKE ? ");
+				first = false;
+			}
+
+			if (criteria.getNombre() != null) {
+				addClause(queryString, first, " UPPER(em.nombre) LIKE ? ");
+				first = false;
+			}
+
+			if (criteria.getApellido() != null) {
+				addClause(queryString, first, " UPPER(em.apellido) LIKE ? ");
+				first = false;
+			}
+
+			if (criteria.getExtDepartamento() != null) {
+				addClause(queryString, first, " UPPER(em.ext_departamento) LIKE ? ");
+				first = false;
+			}
+
+			if (criteria.getExt() != null) {
+				addClause(queryString, first, " UPPER(em.ext) LIKE ? ");
+				first = false;
+			}
+
+			if (criteria.getSupervisor() != null) {
+				addClause(queryString, first, " UPPER(em.supervisor) LIKE ? ");
+				first = false;
+			}
+
+			if (criteria.getIdGestionCriteria() != null) {
+				addClause(queryString, first, " UPPER(g.cod_gestion) LIKE ? ");
+				first = false;
+			}
+
+			if (criteria.getIdTicketCriteria() != null) {
+				addClause(queryString, first, " UPPER(t.cod_ticket) LIKE ? ");
+				first = false;
+			}
+
+			if (criteria.getIdIdiomaCriteria() != null) {
+				addClause(queryString, first, " UPPER(i.cod_idioma) LIKE ? ");
+				first = false;
+			}
+
+			addClause2(queryString, first, " GROUP BY em.cod_empleado ");
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug(queryString);
+			}
+			
+			preparedStatement = connection.prepareStatement(queryString.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+
+			int i = 1;
+
+			if (criteria.getId() != null)
+				preparedStatement.setLong(i++, criteria.getId());
+			if (criteria.getUsuario() != null)
+				preparedStatement.setString(i++, "%" + criteria.getUsuario() + "%");
+			if (criteria.getNombre() != null)
+				preparedStatement.setString(i++, "%" + criteria.getNombre() + "%");
+			if (criteria.getApellido() != null)
+				preparedStatement.setString(i++, "%" + criteria.getApellido() + "%");
+			if (criteria.getExtDepartamento() != null)
+				preparedStatement.setLong(i++, criteria.getExtDepartamento());
+			if (criteria.getExt() != null)
+				preparedStatement.setLong(i++, criteria.getExt());
+			if (criteria.getSupervisor() != null)
+				preparedStatement.setLong(i++, criteria.getSupervisor());
+			if (criteria.getIdGestionCriteria() != null)
+				preparedStatement.setLong(i++, criteria.getIdGestionCriteria());
+			if (criteria.getIdTicketCriteria() != null)
+				preparedStatement.setLong(i++, criteria.getIdTicketCriteria());
+			if (criteria.getIdIdiomaCriteria() != null)
+				preparedStatement.setString(i++, criteria.getIdIdiomaCriteria());
+
+			resultSet = preparedStatement.executeQuery();
+
+			List<Empleado> results = new ArrayList<Empleado>();
+			Empleado em = null;
+			int currentCount = 0;
+
+			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
+				do {
+					em = loadNext(connection, resultSet);
+					results.add(em);
+					currentCount++;
+				} while ((currentCount < count) && resultSet.next());
+			}
+
+			return results;
+
+		} catch (SQLException e) {
+			logger.error(ToStringBuilder.reflectionToString(criteria), e);
+			throw new DataException(e);
+		} finally {
+			JDBCUtils.closeResultSet(resultSet);
+			JDBCUtils.closeStatement(preparedStatement);
+		}
+	}
+	
+	@Override
+	public void update(Connection connection, Empleado e) 
+			throws InstanceNotFoundException, DataException {
+		PreparedStatement preparedStatement = null;
+		try {
+
+			// Create "preparedStatement"
+			String queryString = 
+					"UPDATE empleado " +
+					"SET password = ? " +
+					"WHERE cod_empleado = ? ";
+
+			preparedStatement = connection.prepareStatement(queryString);
+
+			// Fill "preparedStatement"
+			int i = 1;
+			preparedStatement.setString(i++, e.getPassword());
+			preparedStatement.setLong(i++, e.getId());
+
+			/* Execute update. */
+			int updatedRows = preparedStatement.executeUpdate();
+
+			if (updatedRows == 0) {
+				throw new InstanceNotFoundException(e.getId(), Empleado.class.getName());
+			}
+
+			if (updatedRows > 1) {
+				logger.error("Duplicate row for id = '" + 
+						e.getId() + "' in table 'Empleado'");
+				throw new SQLException("Duplicate row for id = '" + 
+						e.getId() + "' in table 'Empleado'");
+			}                          
+
+		} catch (SQLException ex) {
+			logger.error("Employee: "+ToStringBuilder.reflectionToString(e), ex);			
+			throw new DataException(ex);    
+		} finally {
+			JDBCUtils.closeStatement(preparedStatement);
+		}              		
+	}
+
 	private void addClause(StringBuilder queryString, boolean first, String clause) {
 		queryString.append(first ? " WHERE " : " AND ").append(clause);
+	}
+
+	private void addClause2(StringBuilder queryString, boolean first, String clause) {
+		queryString.append(first ? "" : "").append(clause);
 	}
 
 	private Empleado loadNext(Connection connection, ResultSet resultSet) throws SQLException, DataException {
@@ -269,6 +369,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 		int i = 1;
 		Long cod_empleado = resultSet.getLong(i++);
 		String usuario = resultSet.getString(i++);
+		String password =resultSet.getString(i++);
 		String nombre = resultSet.getString(i++);
 		String apellido = resultSet.getString(i++);
 		Long ext_departamento = resultSet.getLong(i++);
@@ -279,6 +380,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 		Empleado em = new Empleado();
 		em.setId(cod_empleado);
 		em.setUsuario(usuario);
+		em.setPassword(password);
 		em.setNombre(nombre);
 		em.setApellido(apellido);
 		em.setExtDepartamento(ext_departamento);
@@ -286,14 +388,12 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 		em.setSupervisor(supervisor);
 		em.setFechaBaja(fecha_baja);
 
-		List<Ticket> tickets = ticketDAO.findByEmpleado(connection, cod_empleado);
-		em.setTickets(tickets);
-		List<Idioma> idiomas = idiomaDAO.findByEmpleado(connection, cod_empleado);
+		List<Idioma> idiomas = idiomaDAO.findByEmpleado(connection, em.getId());
 		em.setIdiomas(idiomas);
-		List<Gestion> gestiones = gestionDAO.findByEmpleado(connection, cod_empleado);
-		em.setGestiones(gestiones);
 
 		return em;
 	}
+	
+	
 
 }

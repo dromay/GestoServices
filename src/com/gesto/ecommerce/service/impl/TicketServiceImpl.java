@@ -4,25 +4,31 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.gesto.ecommerce.dao.TicketDAO;
 import com.gesto.ecommerce.dao.impl.TicketDAOImpl;
 import com.gesto.ecommerce.dao.util.ConnectionManager;
 import com.gesto.ecommerce.dao.util.JDBCUtils;
 import com.gesto.ecommerce.exceptions.DataException;
+import com.gesto.ecommerce.exceptions.InstanceNotFoundException;
+import com.gesto.ecommerce.model.Empresa;
 import com.gesto.ecommerce.model.Ticket;
 import com.gesto.ecommerce.service.TicketService;
 
 public class TicketServiceImpl implements TicketService {
+	
+	private static Logger logger = LogManager.getLogger(TicketServiceImpl.class.getName());
 
 	private TicketDAO dao = null;
 
 	public TicketServiceImpl() {
 		dao = new TicketDAOImpl();
 	}
-
+	
 	@Override
-	public Ticket findById(Long idTicket) throws com.gesto.ecommerce.exceptions.InstanceNotFoundException,
-			com.gesto.ecommerce.exceptions.DataException {
+	public Ticket findById(Long idTicket) throws InstanceNotFoundException, DataException {
 		Connection connection = null;
 
 		try {
@@ -33,6 +39,7 @@ public class TicketServiceImpl implements TicketService {
 			return dao.findById(connection, idTicket);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -51,6 +58,7 @@ public class TicketServiceImpl implements TicketService {
 			return dao.countAll(connection);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -78,6 +86,7 @@ public class TicketServiceImpl implements TicketService {
 			return result;
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 
 		} finally {
@@ -97,6 +106,7 @@ public class TicketServiceImpl implements TicketService {
 			return dao.findByGestion(connection, idGestion);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -115,6 +125,7 @@ public class TicketServiceImpl implements TicketService {
 			return dao.findByEmpleado(connection, id);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);

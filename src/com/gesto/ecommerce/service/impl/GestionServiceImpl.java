@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.gesto.ecommerce.dao.GestionDAO;
 import com.gesto.ecommerce.dao.TicketDAO;
 import com.gesto.ecommerce.dao.impl.GestionDAOImpl;
@@ -19,6 +22,8 @@ import com.gesto.ecommerce.service.GestionCriteria;
 import com.gesto.ecommerce.service.GestionService;
 
 public class GestionServiceImpl implements GestionService {
+	
+	private static Logger logger = LogManager.getLogger(GestionServiceImpl.class.getName());
 
 	private GestionDAO dao = null;
 	private TicketDAO ticketDao= null;
@@ -43,6 +48,7 @@ public class GestionServiceImpl implements GestionService {
 			return dao.countAll(connection);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -63,6 +69,7 @@ public class GestionServiceImpl implements GestionService {
 			return dao.findById(connection, idGestion);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -83,6 +90,7 @@ public class GestionServiceImpl implements GestionService {
 			return dao.exists(connection, idGestion);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -90,7 +98,7 @@ public class GestionServiceImpl implements GestionService {
 	}
 
 	@Override
-	public List<Gestion> findByCliente(Long clienteId) throws DataException {
+	public List<Gestion> findByCliente(Long clienteId, int startIndex, int pageSize) throws DataException {
 
 		Connection connection = null;
 
@@ -99,9 +107,10 @@ public class GestionServiceImpl implements GestionService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.findByCliente(connection, clienteId);
+			return dao.findByCliente(connection, clienteId, startIndex, pageSize);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -109,7 +118,7 @@ public class GestionServiceImpl implements GestionService {
 	}
 
 	@Override
-	public List<Gestion> findByEmpleado(Long id) throws DataException {
+	public List<Gestion> findByEmpleado(Long id, int startIndex, int pageSize) throws DataException {
 		Connection connection = null;
 
 		try {
@@ -117,9 +126,10 @@ public class GestionServiceImpl implements GestionService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.findByEmpleado(connection, id);
+			return dao.findByEmpleado(connection, id, startIndex, pageSize);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -143,12 +153,14 @@ public class GestionServiceImpl implements GestionService {
 			// Execute action
 			Gestion result = dao.create(connection, g, t);
 			t.setIdGestion(g.getIdGestion());
+			t.setIdEmpleado(g.getIdEmpleado());
 			ticketDao.create(connection, t);
 			commit = true;
 
 			return result;
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 
 		} finally {
@@ -168,6 +180,7 @@ public class GestionServiceImpl implements GestionService {
 			return dao.findByCriteria(connection, gc, startIndex, count);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -186,6 +199,7 @@ public class GestionServiceImpl implements GestionService {
 			return dao.findAll(connection, startIndex, count);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);

@@ -2,6 +2,7 @@
 package com.gesto.ecommerce.model;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class Gestion {
@@ -10,6 +11,7 @@ public class Gestion {
 	private Long idCliente = null;
 	private Long idEmpleado = null;
 	private Long idEmpresa = null;
+	private Date fechaInicio = null;
 
 	private List<Ticket> tickets = null;
 	private List<Contacto> contactos = null;
@@ -65,6 +67,14 @@ public class Gestion {
 
 	public void setContactos(List<Contacto> contactos) {
 		this.contactos = contactos;
+	}
+
+	public Date getFechaInicio() {
+		return fechaInicio;
+	}
+
+	public void setFechaInicio(Date fechaInicio) {
+		this.fechaInicio = fechaInicio;
 	}
 
 }

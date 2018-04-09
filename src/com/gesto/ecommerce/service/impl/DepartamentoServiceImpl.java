@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.gesto.ecommerce.dao.DepartamentoDAO;
 import com.gesto.ecommerce.dao.impl.DepartamentoDAOImpl;
 import com.gesto.ecommerce.dao.util.ConnectionManager;
@@ -14,6 +17,8 @@ import com.gesto.ecommerce.model.Departamento;
 import com.gesto.ecommerce.service.DepartamentoService;
 
 public class DepartamentoServiceImpl implements DepartamentoService {
+	
+	private static Logger logger = LogManager.getLogger(DepartamentoServiceImpl.class.getName());
 
 	private DepartamentoDAO dao = null;
 
@@ -33,6 +38,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 			return dao.findById(connection, extDepartamento);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -51,6 +57,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 			return dao.exists(connection, extDepartamento);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -69,6 +76,7 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 			return dao.findAll(connection, startIndex, count);
 
 		} catch (SQLException e) {
+			logger.error(connection,e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);

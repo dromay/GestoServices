@@ -1,5 +1,6 @@
 package com.gesto.ecommerce.service;
 
+import java.sql.Connection;
 import java.util.List;
 
 import com.gesto.ecommerce.exceptions.DataException;
@@ -15,4 +16,6 @@ public interface EmpresaService {
 	public Boolean exists(Long id) throws DataException;
 
 	public List<Empresa> findAll(int startIndex, int count) throws DataException;
+	
+	public Empresa findByTelefono(String telefono) throws InstanceNotFoundException, DataException;
 }

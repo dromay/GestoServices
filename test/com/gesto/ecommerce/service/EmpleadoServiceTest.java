@@ -2,99 +2,142 @@ package com.gesto.ecommerce.service;
 
 import java.util.List;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.gesto.ecommerce.model.Empleado;
-import com.gesto.ecommerce.service.EmpleadoCriteria;
-import com.gesto.ecommerce.service.EmpleadoService;
 import com.gesto.ecommerce.service.impl.EmpleadoServiceImpl;
+import com.gesto.ecommerce.util.PasswordEncryptionUtil;
 import com.gesto.ecommerce.util.ToStringUtil;
 
- 
 class EmpleadoServiceTest {
+	private static Logger logger = LogManager.getLogger(EmpleadoServiceTest.class.getName());
 	private EmpleadoService empleadoService = null;
-	
+
 	public EmpleadoServiceTest() {
 		empleadoService = new EmpleadoServiceImpl();
 	}
-	
+
 	protected void testFindById() {
-		System.out.println("Testing findById ...");
-				Long id = 1L;
-		
-		try {		
-			Empleado b=empleadoService.findById(id);
-			long t0=System.currentTimeMillis();
-			for (int i=0; i<100; i++) {
-				b=empleadoService.findById(id);
-			}
-			long t1=System.currentTimeMillis();
-			System.out.println("Tiempo ="+(t1-t0));
-			Empleado e = empleadoService.findById(id);			
-			System.out.println("Found: "+ToStringUtil.toString(e));
-			
+		if (logger.isDebugEnabled())
+			logger.debug("Testing findByUsuario ...");
+
+		String usuario = "MGD";
+
+		try {
+
+			Empleado emp = empleadoService.findByUsuario(usuario);
+			if (logger.isDebugEnabled())
+				logger.debug("Found: " + ToStringUtil.toString(emp));
+
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-		
-		System.out.println("Test testFindById finished.\n");		
+		if (logger.isDebugEnabled())
+			logger.debug("Test testFindByUsuario finished.\n");
 	}
-	
+
 	protected void testExists() {
-		System.out.println("Testing exists ...");
-				Long id = 1L;
-		
-		try {			
-			Boolean exists = empleadoService.exists(id);			
-			System.out.println("Exists: "+id+" -> "+exists);
-			
+		if (logger.isDebugEnabled())
+			logger.debug("Testing exists ...");
+		Long id = 1L;
+
+		try {
+			Boolean exists = empleadoService.exists(id);
+			if (logger.isDebugEnabled())
+				logger.debug("Exists: " + id + " -> " + exists);
+
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-		
-		System.out.println("Test exists finished.\n");		
+
+		if (logger.isDebugEnabled())
+			logger.debug("Test exists finished.\n");
 	}
-	
+
 	protected void testFindByCriteria() {
-		System.out.println("Testing FindByCriteria ...");
-		int pageSize = 2;
-		
-		EmpleadoCriteria em = new EmpleadoCriteria();
-		em.setUsuario("MGD");
-		
-		
+		if (logger.isDebugEnabled())
+			logger.debug("Testing FindByCriteria ...");
+		int pageSize = 5;
+
+		EmpleadoCriteria criteria = new EmpleadoCriteria();
+		criteria.setExt(23L);
+		criteria.setNombre("Laura");
+
 		try {
 
 			List<Empleado> results = null;
-			int startIndex = 1; 
+			int startIndex = 1;
 			int total = 0;
-			
+
 			do {
-				results = empleadoService.findByCriteria(em, startIndex, pageSize);
-				if (results.size()>0) {
-					System.out.println("Page ["+startIndex+" - "+(startIndex+results.size()-1)+"] : ");				
-					for (Empleado e: results) {
+				results = empleadoService.findByCriteria(criteria, startIndex, pageSize);
+				if (results.size() > 0) {
+					if (logger.isDebugEnabled())
+						logger.debug("Page [" + startIndex + " - " + (startIndex + results.size() - 1) + "] : ");
+					for (Empleado em : results) {
 						total++;
-						System.out.println("Result "+total+": "+ToStringUtil.toString(em));
+						if (logger.isDebugEnabled())
+							logger.debug("Result " + total + ": " + ToStringUtil.toString(em));
 					}
 					startIndex = startIndex + pageSize;
 				}
-				
-			} while (results.size()==pageSize);
-			
-			System.out.println("Found "+total+" results.");
-						
+
+			} while (results.size() == pageSize);
+
+			if (logger.isDebugEnabled())
+				logger.debug("Found " + total + " results.");
+
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-		System.out.println("Test FindByCriteria finished.\n");
+
+		if (logger.isDebugEnabled())
+			logger.debug("Test FindByCriteria finished.\n");
 	}
-	
-	
-	
+
+	protected void empleadoPasswordCreate() {
+		if (logger.isDebugEnabled())
+			logger.debug("Testing update ...");
+		try {
+			int i;
+			// Tomamos como muestra para actualizar el primero que retorne
+			// que seria solo uno si el test anterior ha finalizado OK
+			List<Empleado> results = empleadoService.findAll(1, 100);
+			if (results.size() < 1) {
+				throw new RuntimeException("Unexpected results count from previous tests: " + results.size());
+			}
+			for (i = 0; i < results.size(); i++) {
+				Empleado e = results.get(i);
+				if (logger.isDebugEnabled())
+					logger.debug("Usuario: " + e.getUsuario());
+				String pass = "123abc" + i;
+				if (logger.isDebugEnabled())
+					logger.debug("Plana: " + pass);
+				String resultado = PasswordEncryptionUtil.encryptPassword(pass);
+				e.setPassword(resultado);
+				empleadoService.update(e);
+				if (logger.isDebugEnabled())
+					logger.debug("Encriptada: " + resultado);
+				
+				e = empleadoService.findByUsuario(e.getUsuario());
+
+				
+				if (logger.isDebugEnabled())
+					logger.debug("Updated to: " + e.getPassword());	
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+		if (logger.isDebugEnabled())
+			logger.debug("Test update finished.\n");
+	}
+
 	public static void main(String args[]) {
 		EmpleadoServiceTest test = new EmpleadoServiceTest();
-		test.testFindById();	
-		test.testExists();
-		test.testFindByCriteria();
+		test.empleadoPasswordCreate();
+		//test.testFindByCriteria();
 
 	}
 }

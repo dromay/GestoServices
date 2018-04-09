@@ -9,8 +9,10 @@ import com.gesto.ecommerce.model.Empleado;
 import com.gesto.ecommerce.service.EmpleadoCriteria;
 
 public interface EmpleadoDAO {
+	
+	public List<Empleado> findAll(Connection connection, int startIndex, int count) throws DataException;
 
-	public Empleado findById(Connection connection, Long id) throws InstanceNotFoundException, DataException;
+	public Empleado findByUsuario(Connection connection, String usuario) throws InstanceNotFoundException, DataException;
 
 	public Boolean exists(Connection connection, Long id) throws DataException;
 
@@ -18,4 +20,6 @@ public interface EmpleadoDAO {
 
 	public List<Empleado> findByCriteria(Connection connection, EmpleadoCriteria empleado, int startIndex, int count)
 			throws DataException;
+
+	public void update(Connection connection, Empleado e) throws InstanceNotFoundException, DataException;
 }

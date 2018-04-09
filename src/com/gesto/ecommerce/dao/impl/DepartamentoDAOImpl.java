@@ -7,6 +7,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.gesto.ecommerce.dao.DepartamentoDAO;
 import com.gesto.ecommerce.model.Departamento;
 import com.gesto.ecommerce.dao.util.JDBCUtils;
@@ -14,6 +17,8 @@ import com.gesto.ecommerce.exceptions.DataException;
 import com.gesto.ecommerce.exceptions.InstanceNotFoundException;
 
 public class DepartamentoDAOImpl implements DepartamentoDAO {
+	
+	private static Logger logger = LogManager.getLogger(DepartamentoDAOImpl.class.getName());
 
 	public DepartamentoDAOImpl() {
 	}
@@ -42,13 +47,16 @@ public class DepartamentoDAOImpl implements DepartamentoDAO {
 			if (resultSet.next()) {
 				dep = loadNext(resultSet);
 			} else {
-				throw new InstanceNotFoundException("Customer with id " + extDepartamento + "not found",
+				logger.error("Department with extension " + extDepartamento + "not found",
+						Departamento.class.getName());
+				throw new InstanceNotFoundException("Department with extension " + extDepartamento + "not found",
 						Departamento.class.getName());
 			}
 
 			return dep;
 
 		} catch (SQLException e) {
+			logger.error("Department extension: " + extDepartamento, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -80,6 +88,7 @@ public class DepartamentoDAOImpl implements DepartamentoDAO {
 			}
 
 		} catch (SQLException e) {
+			logger.error("Department extension: " + extDepartamento, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -120,6 +129,7 @@ public class DepartamentoDAOImpl implements DepartamentoDAO {
 			return results;
 
 		} catch (SQLException e) {
+			logger.error(e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);

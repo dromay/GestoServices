@@ -1,12 +1,13 @@
 package com.gesto.ecommerce.model;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Date;
+import java.util.List;
 
 public class Empleado {
 	private Long id = null;
 	private String usuario = null;
+	private String password = null;
 	private String nombre = null;
 	private String apellido = null;
 	private Long extDepartamento = null;
@@ -14,14 +15,10 @@ public class Empleado {
 	private Long supervisor = null;
 	private Date fechaBaja = null;
 
-	private List<Ticket> tickets = null;
-	private List<Gestion> gestiones = null;
 	private List<Idioma> idiomas = null;
 
 	public Empleado() {
-		gestiones = new ArrayList<Gestion>();
-		tickets = new ArrayList<Ticket>();
-		idiomas=new ArrayList<Idioma>();
+		idiomas = new ArrayList<Idioma>();
 	}
 
 	public Long getId() {
@@ -38,6 +35,14 @@ public class Empleado {
 
 	public void setUsuario(String usuario) {
 		this.usuario = usuario;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	public String getNombre() {
@@ -88,22 +93,6 @@ public class Empleado {
 		this.fechaBaja = fecha_baja;
 	}
 
-	public List<Ticket> getTickets() {
-		return tickets;
-	}
-
-	public void setTickets(List<Ticket> tickets) {
-		this.tickets = tickets;
-	}
-
-	public List<Gestion> getGestiones() {
-		return gestiones;
-	}
-
-	public void setGestiones(List<Gestion> gestiones) {
-		this.gestiones = gestiones;
-	}
-
 	public List<Idioma> getIdiomas() {
 		return idiomas;
 	}
@@ -111,7 +100,5 @@ public class Empleado {
 	public void setIdiomas(List<Idioma> idiomas) {
 		this.idiomas = idiomas;
 	}
-	
-	
 
 }

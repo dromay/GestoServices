@@ -8,6 +8,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.gesto.ecommerce.dao.ClienteDAO;
 import com.gesto.ecommerce.dao.ContactoDAO;
 import com.gesto.ecommerce.dao.GestionDAO;
@@ -22,6 +26,8 @@ import com.gesto.ecommerce.model.Idioma;
 import com.gesto.ecommerce.service.ClienteCriteria;
 
 public class ClienteDAOImpl implements ClienteDAO {
+
+	private static Logger logger = LogManager.getLogger(ClienteDAOImpl.class.getName());
 
 	private ContactoDAO contactoDAO = null;
 	private IdiomaDAO idiomaDAO = null;
@@ -56,20 +62,23 @@ public class ClienteDAOImpl implements ClienteDAO {
 			if (resultSet.next()) {
 				e = loadNext(connection, resultSet);
 			} else {
-				throw new InstanceNotFoundException("Cliente con id " + clienteId + " no encontrado",
+				logger.error("Client with id " + clienteId + " not found",
+						Cliente.class.getName());
+				throw new InstanceNotFoundException("Client with id " + clienteId + " not found",
 						Cliente.class.getName());
 			}
 
 			return e;
 
 		} catch (SQLException e) {
+			logger.error("Client ID: "+clienteId, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
 			JDBCUtils.closeStatement(preparedStatement);
 		}
 	}
-
+	
 	@Override
 	public Boolean exists(Connection connection, Long clienteId) throws DataException {
 		boolean exist = false;
@@ -94,6 +103,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 			}
 
 		} catch (SQLException e) {
+			logger.error("Client ID: "+clienteId, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -134,6 +144,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 			return results;
 
 		} catch (SQLException e) {
+			logger.error(e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -159,10 +170,12 @@ public class ClienteDAOImpl implements ClienteDAO {
 			if (resultSet.next()) {
 				return resultSet.getLong(i++);
 			} else {
+				logger.error("Unexpected condition trying to retrieve count value");
 				throw new DataException("Unexpected condition trying to retrieve count value");
 			}
 
 		} catch (SQLException e) {
+			logger.error(e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -171,7 +184,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 	}
 
 	@Override
-	public List<Cliente> findByCriteria(Connection connection, ClienteCriteria cliente, int startIndex, int count)
+	public List<Cliente> findByCriteria(Connection connection, ClienteCriteria criteria, int startIndex, int count)
 			throws DataException {
 
 		PreparedStatement preparedStatement = null;
@@ -181,70 +194,94 @@ public class ClienteDAOImpl implements ClienteDAO {
 		try {
 
 			queryString = new StringBuilder(
-					" SELECT c.cod_cliente, c.tipo_cliente, c.nombre_cliente, c.doc_identidad, i.cod_idioma, g.cod_gestion, co.tlf, co.nombre, co.apellido, co.correo"
-							+ " FROM cliente c " + " INNER JOIN cliente_contacto cc ON c.cod_cliente = cc.cod_cliente "
-							+ " INNER JOIN contacto co ON cc.cod_contacto = co.cod_contacto "
-							+ " INNER JOIN gestion g ON g.cod_cliente = c.cod_cliente "
-							+ " INNER JOIN idioma_cliente ic ON ic.cod_cliente = c.cod_cliente "
-							+ " INNER JOIN idioma i ON i.cod_idioma = ic.cod_idioma ");
+					" SELECT c.cod_cliente , c.tipo_cliente, c.nombre_cliente, c.doc_identidad" + " FROM cliente c ");
 
 			// Marca (flag) de primera clausula, que se desactiva en la primera
 			boolean first = true;
 
-			if (cliente.getClienteId() != null) {
-				addClause(queryString, first, " UPPER(c.cod_cliente) LIKE ? ");
+			if (criteria.getCorreoCriteria() != null || criteria.getTlfCriteria() != null) {
+				addClause2(queryString, first, " INNER JOIN cliente_contacto cc ON c.cod_cliente = cc.cod_cliente ");
+				addClause2(queryString, first, " INNER JOIN contacto co ON cc.cod_contacto = co.cod_contacto ");
+				first = false;
+			}
+			if (criteria.getIdGestionCriteria() != null) {
+				addClause2(queryString, first, " INNER JOIN gestion g ON g.cod_cliente = c.cod_cliente ");
+				first = false;
+			}
+			if (criteria.getIdIdiomaCriteria() != null) {
+				addClause2(queryString, first, " INNER JOIN idioma_cliente ic ON ic.cod_cliente = c.cod_cliente ");
+				addClause2(queryString, first, " INNER JOIN idioma i ON i.cod_idioma = ic.cod_idioma ");
 				first = false;
 			}
 
-			if (cliente.getTipo() != null) {
+			if (criteria.getClienteIdCriteria() != null) {
+				addClause(queryString, first, " UPPER(c.cod_cliente) = ? ");
+				first = false;
+			}
+
+			if (criteria.getTipoCriteria() != null) {
 				addClause(queryString, first, " UPPER(c.tipo_cliente) LIKE ? ");
 				first = false;
 			}
 
-			if (cliente.getNombre() != null) {
+			if (criteria.getNombreCriteria() != null) {
 				addClause(queryString, first, " UPPER(c.nombre_cliente) LIKE ? ");
 				first = false;
 			}
 
-			if (cliente.getDocIdentidad() != null) {
+			if (criteria.getDocIdentidadCriteria() != null) {
 				addClause(queryString, first, " UPPER(c.doc_identidad) LIKE ? ");
 				first = false;
 			}
 
-			if (cliente.getContactos().isEmpty()) {
+			if (criteria.getCorreoCriteria() != null) {
+				addClause(queryString, first, " UPPER(co.correo) LIKE ? ");
+				first = false;
+			}
+
+			if (criteria.getTlfCriteria() != null) {
 				addClause(queryString, first, " UPPER(co.tlf) LIKE ? ");
 				first = false;
 			}
 
-			if (cliente.getIdiomas().isEmpty()) {
+			if (criteria.getIdIdiomaCriteria() != null) {
 				addClause(queryString, first, " UPPER(i.cod_idioma) LIKE ? ");
 				first = false;
 			}
 
-			if (cliente.getGestiones().isEmpty()) {
-				addClause(queryString, first, " UPPER(g.cod_gestion) LIKE ? ");
+			if (criteria.getIdGestionCriteria() != null) {
+				addClause(queryString, first, " UPPER(g.cod_gestion) = ? ");
 				first = false;
+			}
+
+			addClause2(queryString, first, " GROUP BY c.cod_cliente ");
+			
+			if (logger.isDebugEnabled()) {
+				logger.debug(ToStringBuilder.reflectionToString(criteria));
+				logger.debug(queryString.toString());
 			}
 
 			preparedStatement = connection.prepareStatement(queryString.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			
-			if (cliente.getClienteId() != null)
-			preparedStatement.setString(i++, "%" + cliente.getClienteId() + "%");
-			if (cliente.getTipo() != null)
-			preparedStatement.setString(i++, "%" + cliente.getTipo() + "%");
-			if (cliente.getNombre() != null)
-			preparedStatement.setString(i++, "%" + cliente.getNombre() + "%");
-			if (cliente.getDocIdentidad() != null)
-			preparedStatement.setString(i++, "%" + cliente.getDocIdentidad() + "%");
-			if (cliente.getContactos() != null)
-			preparedStatement.setString(i++, "%" + cliente.getContactos() + "%");
-			if (cliente.getIdiomas() != null)
-			preparedStatement.setString(i++, "%" + cliente.getIdiomas() + "%");
-			if (cliente.getGestiones() != null)
-			preparedStatement.setString(i++, "%" + cliente.getGestiones() + "%");
+
+			if (criteria.getClienteIdCriteria() != null)
+				preparedStatement.setLong(i++, criteria.getClienteIdCriteria());
+			if (criteria.getTipoCriteria() != null)
+				preparedStatement.setString(i++, "%" + criteria.getTipoCriteria() + "%");
+			if (criteria.getNombreCriteria() != null)
+				preparedStatement.setString(i++, "%" + criteria.getNombreCriteria() + "%");
+			if (criteria.getDocIdentidadCriteria() != null)
+				preparedStatement.setString(i++, "%" + criteria.getDocIdentidadCriteria() + "%");
+			if (criteria.getCorreoCriteria() != null)
+				preparedStatement.setString(i++, "%" + criteria.getCorreoCriteria() + "%");
+			if (criteria.getTlfCriteria() != null)
+				preparedStatement.setString(i++,criteria.getTlfCriteria());
+			if (criteria.getIdIdiomaCriteria() != null)
+				preparedStatement.setString(i++, "%" + criteria.getIdIdiomaCriteria() + "%");
+			if (criteria.getIdGestionCriteria() != null)
+				preparedStatement.setLong(i++, criteria.getIdGestionCriteria());
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -263,6 +300,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 			return results;
 
 		} catch (SQLException e) {
+			logger.error(ToStringBuilder.reflectionToString(criteria), e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -270,8 +308,135 @@ public class ClienteDAOImpl implements ClienteDAO {
 		}
 	}
 
+	// @Override
+	// public List<Cliente> findByCriteria(Connection connection, ClienteCriteria
+	// criteria, int startIndex, int count)
+	// throws DataException {
+	//
+	// PreparedStatement preparedStatement = null;
+	// ResultSet resultSet = null;
+	// StringBuilder queryString = null;
+	//
+	// try {
+	//
+	// queryString = new StringBuilder(
+	// " SELECT c.cod_cliente , c.tipo_cliente, c.nombre_cliente, c.doc_identidad"
+	// + " FROM cliente c ");
+	//
+	// // Marca (flag) de primera clausula, que se desactiva en la primera
+	// boolean first = true;
+	//
+	// if (!criteria.getContactos().isEmpty()) {
+	// addClause(queryString, first, " INNER JOIN cliente_contacto cc ON
+	// c.cod_cliente = cc.cod_cliente ");
+	// addClause(queryString, first, " INNER JOIN contacto co ON cc.cod_contacto =
+	// co.cod_contacto ");
+	// first = false;
+	// }
+	// if (!criteria.getGestiones().isEmpty()) {
+	// addClause(queryString, first, " INNER JOIN gestion g ON g.cod_cliente =
+	// c.cod_cliente ");
+	// first = false;
+	// }
+	// if (!criteria.getIdiomas().isEmpty()) {
+	// addClause(queryString, first, " INNER JOIN idioma_cliente ic ON
+	// ic.cod_cliente = c.cod_cliente ");
+	// addClause(queryString, first, " INNER JOIN idioma i ON i.cod_idioma =
+	// ic.cod_idioma ");
+	// first = false;
+	// }
+	//
+	// if (criteria.getClienteId() != null) {
+	// addClause(queryString, first, " UPPER(c.cod_cliente) = ? ");
+	// first = false;
+	// }
+	//
+	// if (criteria.getTipo() != null) {
+	// addClause(queryString, first, " UPPER(c.tipo_cliente) LIKE ? ");
+	// first = false;
+	// }
+	//
+	// if (criteria.getNombre() != null) {
+	// addClause(queryString, first, " UPPER(c.nombre_cliente) LIKE ? ");
+	// first = false;
+	// }
+	//
+	// if (criteria.getDocIdentidad() != null) {
+	// addClause(queryString, first, " UPPER(c.doc_identidad) LIKE ? ");
+	// first = false;
+	// }
+	//
+	// if (!criteria.getContactos().isEmpty()) {
+	// addClause(queryString, first, " UPPER(co.tlf) LIKE ? ");
+	// first = false;
+	// }
+	//
+	// if (!criteria.getIdiomas().isEmpty()) {
+	// addClause(queryString, first, " UPPER(i.cod_idioma) LIKE ? ");
+	// first = false;
+	// }
+	//
+	// if (!criteria.getGestiones().isEmpty()) {
+	// addClause(queryString, first, " UPPER(g.cod_gestion) = ? ");
+	// first = false;
+	// }
+	//
+	// if (logger.isDebugEnabled()) {
+	// logger.debug(ToStringBuilder.reflectionToString(criteria));
+	// logger.debug(queryString.toString());
+	// }
+	//
+	// preparedStatement = connection.prepareStatement(queryString.toString(),
+	// ResultSet.TYPE_SCROLL_INSENSITIVE,
+	// ResultSet.CONCUR_READ_ONLY);
+	//
+	// int i = 1;
+	//
+	// if (criteria.getClienteId() != null)
+	// preparedStatement.setLong(i++, criteria.getClienteId());
+	// if (criteria.getTipo() != null)
+	// preparedStatement.setString(i++, "%" + criteria.getTipo() + "%");
+	// if (criteria.getNombre() != null)
+	// preparedStatement.setString(i++, "%" + criteria.getNombre() + "%");
+	// if (criteria.getDocIdentidad() != null)
+	// preparedStatement.setString(i++, "%" + criteria.getDocIdentidad() + "%");
+	// if (!criteria.getContactos().isEmpty())
+	// preparedStatement.setString(i++, "%" + criteria.getContactos() + "%");
+	// if (!criteria.getIdiomas().isEmpty())
+	// preparedStatement.setString(i++, "%" + criteria.getIdiomas() + "%");
+	// if (!criteria.getGestiones().isEmpty())
+	// preparedStatement.setString(i++, "%" + criteria.getGestiones() + "%");
+	//
+	// resultSet = preparedStatement.executeQuery();
+	//
+	// List<Cliente> results = new ArrayList<Cliente>();
+	// Cliente e = null;
+	// int currentCount = 0;
+	//
+	// if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
+	// do {
+	// e = loadNext(connection, resultSet);
+	// results.add(e);
+	// currentCount++;
+	// } while ((currentCount < count) && resultSet.next());
+	// }
+	//
+	// return results;
+	//
+	// } catch (SQLException e) {
+	// throw new DataException(e);
+	// } finally {
+	// JDBCUtils.closeResultSet(resultSet);
+	// JDBCUtils.closeStatement(preparedStatement);
+	// }
+	// }
+
 	private void addClause(StringBuilder queryString, boolean first, String clause) {
 		queryString.append(first ? " WHERE " : " AND ").append(clause);
+	}
+
+	private void addClause2(StringBuilder queryString, boolean first, String clause) {
+		queryString.append(first ? "" : "").append(clause);
 	}
 
 	private Cliente loadNext(Connection connection, ResultSet resultSet) throws SQLException, DataException {
@@ -292,7 +457,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 		c.setContactos(contactos);
 		List<Idioma> idiomas = idiomaDAO.findByCliente(connection, cod_cliente);
 		c.setIdiomas(idiomas);
-		List<Gestion> gestiones = gestionDAO.findByCliente(connection, cod_cliente);
+		List<Gestion> gestiones = gestionDAO.findByCliente(connection, cod_cliente, 1, Integer.MAX_VALUE);
 		c.setGestiones(gestiones);
 
 		return c;

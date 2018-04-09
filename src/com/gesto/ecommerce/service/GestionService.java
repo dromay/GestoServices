@@ -21,9 +21,9 @@ public interface GestionService {
 
 	public long countAll() throws DataException;
 
-	public List<Gestion> findByCliente(Long clienteId) throws DataException;
+	public List<Gestion> findByCliente(Long clienteId, int startIndex, int pageSize) throws DataException;
 	
-	public List<Gestion> findByEmpleado(Long id) throws DataException;
+	public List<Gestion> findByEmpleado(Long id, int startIndex, int pageSize) throws DataException;
 
 	public Gestion create(Gestion g, Ticket t) throws DuplicateInstanceException, DataException;
 

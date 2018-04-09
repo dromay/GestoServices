@@ -7,10 +7,9 @@ public class Ticket {
 	private Long idTicket = null;
 	private Long idGestion = null;
 	private String tipoTicket = null;
-	private Date tiempoTotal = null;
+	private Long tiempoTotal = null; // en segundos
 	private String comentario = null;
 	private Date fechaInicio = null;
-	private Date fechaFin = null;
 	private Long idEmpleado = null;
 	private Long extDepartamento = null;
 	private Long idContacto = null;
@@ -39,11 +38,11 @@ public class Ticket {
 		this.tipoTicket = tipoTicket;
 	}
 
-	public Date getTiempoTotal() {
+	public Long getTiempoTotal() {
 		return tiempoTotal;
 	}
 
-	public void setTiempoTotal(Date tiempoTotal) {
+	public void setTiempoTotal(Long tiempoTotal) {
 		this.tiempoTotal = tiempoTotal;
 	}
 
@@ -61,14 +60,6 @@ public class Ticket {
 
 	public void setFechaInicio(Date fechaInicio) {
 		this.fechaInicio = fechaInicio;
-	}
-
-	public Date getFechaFin() {
-		return fechaFin;
-	}
-
-	public void setFechaFin(Date fechaFin) {
-		this.fechaFin = fechaFin;
 	}
 
 	public Long getIdEmpleado() {

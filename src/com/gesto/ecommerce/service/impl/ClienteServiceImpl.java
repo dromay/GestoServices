@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.gesto.ecommerce.dao.ClienteDAO;
 import com.gesto.ecommerce.dao.impl.ClienteDAOImpl;
 import com.gesto.ecommerce.dao.util.ConnectionManager;
@@ -15,6 +18,8 @@ import com.gesto.ecommerce.service.ClienteCriteria;
 import com.gesto.ecommerce.service.ClienteService;
 
 public class ClienteServiceImpl implements ClienteService {
+	
+	private static Logger logger = LogManager.getLogger(ClienteServiceImpl.class.getName());
 
 	private ClienteDAO dao = null;
 
@@ -35,6 +40,7 @@ public class ClienteServiceImpl implements ClienteService {
 				return dao.findById(connection, clienteId);
 
 			} catch (SQLException e) {
+				logger.error(connection,e);
 				throw new DataException(e);
 			} finally {
 				JDBCUtils.closeConnection(connection);
@@ -53,6 +59,7 @@ public class ClienteServiceImpl implements ClienteService {
 				return dao.exists(connection, clienteId);
 
 			} catch (SQLException e) {
+				logger.error(connection,e);
 				throw new DataException(e);
 			} finally {
 				JDBCUtils.closeConnection(connection);
@@ -71,6 +78,7 @@ public class ClienteServiceImpl implements ClienteService {
 				return dao.findAll(connection, startIndex, count);
 
 			} catch (SQLException e) {
+				logger.error(connection,e);
 				throw new DataException(e);
 			} finally {
 				JDBCUtils.closeConnection(connection);
@@ -89,6 +97,7 @@ public class ClienteServiceImpl implements ClienteService {
 				return dao.countAll(connection);
 
 			} catch (SQLException e) {
+				logger.error(connection,e);
 				throw new DataException(e);
 			} finally {
 				JDBCUtils.closeConnection(connection);
@@ -107,6 +116,7 @@ public class ClienteServiceImpl implements ClienteService {
 				return dao.findByCriteria(connection, c, startIndex, count);
 
 			} catch (SQLException e) {
+				logger.error(connection,e);
 				throw new DataException(e);
 			} finally {
 				JDBCUtils.closeConnection(connection);

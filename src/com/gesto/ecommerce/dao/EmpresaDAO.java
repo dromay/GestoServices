@@ -14,4 +14,6 @@ public interface EmpresaDAO {
 	public Boolean exists(Connection connection, Long id) throws DataException;
 
 	public List<Empresa> findAll(Connection connection, int startIndex, int count) throws DataException;
+
+	public Empresa findByTelefono(Connection connection, String telefono) throws InstanceNotFoundException, DataException;
 }

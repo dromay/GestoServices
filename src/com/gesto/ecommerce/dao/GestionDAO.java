@@ -20,9 +20,9 @@ public interface GestionDAO {
 
 	public long countAll(Connection connection) throws DataException;
 
-	public List<Gestion> findByCliente(Connection connection, Long clienteId) throws DataException;
+	public List<Gestion> findByCliente(Connection connection, Long clienteId, int startIndex, int pageSize) throws DataException;
 	
-	public List<Gestion> findByEmpleado(Connection connection, Long id) throws DataException;
+	public List<Gestion> findByEmpleado(Connection connection, Long id, int startIndex, int pageSize) throws DataException;
 
 	public Gestion create(Connection connection, Gestion g, Ticket t) throws DuplicateInstanceException, DataException;
 

@@ -11,5 +11,9 @@ public interface IdiomaDAO {
 	public List<Idioma> findByCliente(Connection connection, Long cod_cliente) throws DataException;
 	
 	public List<Idioma> findByEmpleado(Connection connection, Long id) throws DataException;
+	
+	public List<Idioma> findByContacto(Connection connection, Long codContacto) throws DataException;
+
+	public List<Idioma> findAll(Connection connection, int startIndex, int pageSize) throws DataException;
 
 }

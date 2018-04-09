@@ -9,12 +9,13 @@ import java.util.List;
 import com.gesto.ecommerce.exceptions.DataException;
 import com.gesto.ecommerce.exceptions.DuplicateInstanceException;
 import com.gesto.ecommerce.exceptions.InstanceNotFoundException;
+import com.gesto.ecommerce.model.Empresa;
 import com.gesto.ecommerce.model.Ticket;
 
 public interface TicketService {
-	
-	public Ticket findById(Long idTicket) throws InstanceNotFoundException, DataException;
 
+	public Ticket findById(Long idTicket) throws InstanceNotFoundException, DataException;
+	
 	public long countAll() throws DataException;
 
 	public Ticket create(Ticket t) throws DuplicateInstanceException, DataException;
