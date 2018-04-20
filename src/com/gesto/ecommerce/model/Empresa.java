@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Empresa {
 
-	private Long id = null;
+	private Long idEmpresa = null;
 	private String descripcion = null;
 
 	private List<Gestion> gestiones = null;
@@ -16,12 +16,12 @@ public class Empresa {
 		contactos = new ArrayList<Contacto>();
 	}
 
-	public Long getId() {
-		return id;
+	public Long getIdEmpresa() {
+		return idEmpresa;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setIdEmpresa(Long idEmpresa) {
+		this.idEmpresa = idEmpresa;
 	}
 
 	public String getDescripcion() {

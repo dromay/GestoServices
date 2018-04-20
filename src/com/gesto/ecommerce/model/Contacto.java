@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Contacto {
 
-	private Long contactoCod = null;
+	private Long idContacto = null;
 	private String contactoNombre = null;
 	private String contactoApellido = null;
 	private String contactoCorreo = null;
@@ -17,12 +17,12 @@ public class Contacto {
 		idiomas = new ArrayList<Idioma>();
 	}
 
-	public Long getContactoCod() {
-		return contactoCod;
+	public Long getIdContacto() {
+		return idContacto;
 	}
 
-	public void setContactoCod(Long contactoCod) {
-		this.contactoCod = contactoCod;
+	public void setIdContacto(Long idContacto) {
+		this.idContacto = idContacto;
 	}
 
 	public String getClienteDescripcion() {

@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Idioma {
 
-	private String id;
+	private String idIdioma;
 	private String descripcion;
 
 	private List<Cliente> clientes = null;
@@ -18,12 +18,12 @@ public class Idioma {
 		contactos = new ArrayList<Contacto>();
 	}
 
-	public String getId() {
-		return id;
+	public String getIdIdioma() {
+		return idIdioma;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setIdIdioma(String idIdioma) {
+		this.idIdioma = idIdioma;
 	}
 
 	public String getDescripcion() {

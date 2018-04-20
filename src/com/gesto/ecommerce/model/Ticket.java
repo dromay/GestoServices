@@ -11,7 +11,6 @@ public class Ticket {
 	private String comentario = null;
 	private Date fechaInicio = null;
 	private Long idEmpleado = null;
-	private Long extDepartamento = null;
 	private Long idContacto = null;
 
 	public Long getIdTicket() {
@@ -68,14 +67,6 @@ public class Ticket {
 
 	public void setIdEmpleado(Long idEmpleado) {
 		this.idEmpleado = idEmpleado;
-	}
-
-	public Long getExtDepartamento() {
-		return extDepartamento;
-	}
-
-	public void setExtDepartamento(Long extDepartamento) {
-		this.extDepartamento = extDepartamento;
 	}
 
 	public Long getIdContacto() {

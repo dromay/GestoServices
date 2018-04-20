@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Cliente {
 
-	private Long clienteId = null;
+	private Long idCliente = null;
 	private String tipo = null;
 	private String nombre = null;
 	private String docIdentidad = null;
@@ -20,12 +20,12 @@ public class Cliente {
 		gestiones= new ArrayList<Gestion>();
 	}
 
-	public Long getClienteId() {
-		return clienteId;
+	public Long getIdCliente() {
+		return idCliente;
 	}
 
-	public void setClienteId(Long clienteId) {
-		this.clienteId = clienteId;
+	public void setIdCliente(Long idCliente) {
+		this.idCliente = idCliente;
 	}
 
 	public String getTipo() {

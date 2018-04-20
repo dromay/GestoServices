@@ -5,7 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 public class Empleado {
-	private Long id = null;
+	private Long idEmpleado = null;
 	private String usuario = null;
 	private String password = null;
 	private String nombre = null;
@@ -21,12 +21,12 @@ public class Empleado {
 		idiomas = new ArrayList<Idioma>();
 	}
 
-	public Long getId() {
-		return id;
+	public Long getIdEmpleado() {
+		return idEmpleado;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setIdEmpleado(Long idEmpleado) {
+		this.idEmpleado = idEmpleado;
 	}
 
 	public String getUsuario() {
