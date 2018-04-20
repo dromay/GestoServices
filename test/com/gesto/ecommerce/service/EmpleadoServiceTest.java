@@ -2,7 +2,6 @@ package com.gesto.ecommerce.service;
 
 import java.util.List;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -24,10 +23,11 @@ class EmpleadoServiceTest {
 			logger.debug("Testing findByUsuario ...");
 
 		String usuario = "MGD";
+		String locale = "ES";
 
 		try {
 
-			Empleado emp = empleadoService.findByUsuario(usuario);
+			Empleado emp = empleadoService.findByUsuario(usuario, locale);
 			if (logger.isDebugEnabled())
 				logger.debug("Found: " + ToStringUtil.toString(emp));
 
@@ -38,24 +38,6 @@ class EmpleadoServiceTest {
 			logger.debug("Test testFindByUsuario finished.\n");
 	}
 
-	protected void testExists() {
-		if (logger.isDebugEnabled())
-			logger.debug("Testing exists ...");
-		Long id = 1L;
-
-		try {
-			Boolean exists = empleadoService.exists(id);
-			if (logger.isDebugEnabled())
-				logger.debug("Exists: " + id + " -> " + exists);
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-
-		if (logger.isDebugEnabled())
-			logger.debug("Test exists finished.\n");
-	}
-
 	protected void testFindByCriteria() {
 		if (logger.isDebugEnabled())
 			logger.debug("Testing FindByCriteria ...");
@@ -64,15 +46,16 @@ class EmpleadoServiceTest {
 		EmpleadoCriteria criteria = new EmpleadoCriteria();
 		criteria.setExt(23L);
 		criteria.setNombre("Laura");
+		String locale = "ES";
 
 		try {
-
+			
 			List<Empleado> results = null;
 			int startIndex = 1;
 			int total = 0;
 
 			do {
-				results = empleadoService.findByCriteria(criteria, startIndex, pageSize);
+				results = empleadoService.findByCriteria(criteria, locale, startIndex, pageSize);
 				if (results.size() > 0) {
 					if (logger.isDebugEnabled())
 						logger.debug("Page [" + startIndex + " - " + (startIndex + results.size() - 1) + "] : ");
@@ -102,9 +85,10 @@ class EmpleadoServiceTest {
 			logger.debug("Testing update ...");
 		try {
 			int i;
+			String locale = "ES";
 			// Tomamos como muestra para actualizar el primero que retorne
 			// que seria solo uno si el test anterior ha finalizado OK
-			List<Empleado> results = empleadoService.findAll(1, 100);
+			List<Empleado> results = empleadoService.findAll(locale);
 			if (results.size() < 1) {
 				throw new RuntimeException("Unexpected results count from previous tests: " + results.size());
 			}
@@ -117,11 +101,11 @@ class EmpleadoServiceTest {
 					logger.debug("Plana: " + pass);
 				String resultado = PasswordEncryptionUtil.encryptPassword(pass);
 				e.setPassword(resultado);
-				empleadoService.update(e);
+				empleadoService.updatePassword(e);
 				if (logger.isDebugEnabled())
 					logger.debug("Encriptada: " + resultado);
 				
-				e = empleadoService.findByUsuario(e.getUsuario());
+				e = empleadoService.findByUsuario(e.getUsuario(), locale);
 
 				
 				if (logger.isDebugEnabled())

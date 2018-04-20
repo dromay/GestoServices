@@ -9,15 +9,8 @@ import com.gesto.ecommerce.model.Cliente;
 
 public interface ClienteService {
      
- 	public Cliente findById(Long clienteId) throws InstanceNotFoundException, DataException;
+ 	public Cliente findById(Long idCliente, String locale) throws InstanceNotFoundException, DataException;
 
- 	public Boolean exists(Long clienteId) throws DataException;
-
- 	public List<Cliente> findAll(int startIndex, int count) throws DataException;
-
- 	public long countAll() throws DataException;
-
- 	public List<Cliente> findByCriteria(ClienteCriteria c, int startIndex, int count)
+ 	public List<Cliente> findByCriteria(ClienteCriteria criteria, String locale, int startIndex, int count)
  			throws DataException;
-
 }

@@ -14,12 +14,11 @@ import com.gesto.ecommerce.dao.util.JDBCUtils;
 import com.gesto.ecommerce.exceptions.DataException;
 import com.gesto.ecommerce.exceptions.InstanceNotFoundException;
 import com.gesto.ecommerce.model.Empleado;
-import com.gesto.ecommerce.model.Gestion;
 import com.gesto.ecommerce.service.EmpleadoCriteria;
 import com.gesto.ecommerce.service.EmpleadoService;
 
 public class EmpleadoServiceImpl implements EmpleadoService {
-	
+
 	private static Logger logger = LogManager.getLogger(EmpleadoServiceImpl.class.getName());
 
 	private EmpleadoDAO dao = null;
@@ -27,9 +26,9 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 	public EmpleadoServiceImpl() {
 		dao = new EmpleadoDAOImpl();
 	}
-
+	
 	@Override
-	public Empleado findByUsuario(String usuario) throws InstanceNotFoundException, DataException {
+	public List<Empleado> findAll(String locale) throws DataException {
 		Connection connection = null;
 
 		try {
@@ -37,10 +36,10 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.findByUsuario(connection, usuario);
+			return dao.findAll(connection, locale);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(e.getMessage(),e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -48,7 +47,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 	}
 
 	@Override
-	public Boolean exists(Long id) throws DataException {
+	public Empleado findByUsuario(String usuario, String locale) throws InstanceNotFoundException, DataException {
 		Connection connection = null;
 
 		try {
@@ -56,18 +55,18 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.exists(connection, id);
+			return dao.findByUsuario(connection, usuario, locale);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(e.getMessage(), e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
 		}
 	}
-
+	
 	@Override
-	public List<Empleado> findAll(int startIndex, int count) throws DataException {
+	public Empleado findSupervisor(Empleado es, String locale) throws InstanceNotFoundException, DataException {
 		Connection connection = null;
 
 		try {
@@ -75,10 +74,10 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.findAll(connection, startIndex, count);
+			return dao.findSupervisor(connection, es, locale);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(e.getMessage(), e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -86,7 +85,8 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 	}
 
 	@Override
-	public long countAll() throws DataException {
+	public List<Empleado> findByCriteria(EmpleadoCriteria empleado, String locale, int startIndex, int count)
+			throws DataException {
 		Connection connection = null;
 
 		try {
@@ -94,10 +94,10 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.countAll(connection);
+			return dao.findByCriteria(connection, empleado, locale, startIndex, count);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(e.getMessage(), e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -105,26 +105,7 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 	}
 
 	@Override
-	public List<Empleado> findByCriteria(EmpleadoCriteria empleado, int startIndex, int count) throws DataException {
-		Connection connection = null;
-
-		try {
-
-			connection = ConnectionManager.getConnection();
-			connection.setAutoCommit(true);
-
-			return dao.findByCriteria(connection, empleado, startIndex, count);
-
-		} catch (SQLException e) {
-			logger.error(connection,e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeConnection(connection);
-		}
-	}
-
-	@Override
-	public void update(Empleado e) throws InstanceNotFoundException, DataException {
+	public void updatePassword(Empleado e) throws InstanceNotFoundException, DataException {
 
 		Connection connection = null;
 		boolean commit = false;
@@ -138,11 +119,11 @@ public class EmpleadoServiceImpl implements EmpleadoService {
 			connection.setAutoCommit(false);
 
 			// Execute action
-			dao.update(connection, e);
+			dao.updatePassword(connection, e);
 			commit = true;
 
 		} catch (SQLException em) {
-			logger.error(connection,em);
+			logger.error(em.getMessage(), em);
 			throw new DataException(em);
 		} finally {
 			JDBCUtils.closeConnection(connection, commit);

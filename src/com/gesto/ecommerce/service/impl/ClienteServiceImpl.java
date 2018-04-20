@@ -26,9 +26,9 @@ public class ClienteServiceImpl implements ClienteService {
 	public ClienteServiceImpl() {
 		dao = new ClienteDAOImpl();
 	}
-	
+		
 		@Override
-		public Cliente findById(Long clienteId) throws InstanceNotFoundException, DataException {
+		public Cliente findById(Long idCliente, String locale) throws InstanceNotFoundException, DataException {
 
 			Connection connection = null;
 
@@ -37,7 +37,7 @@ public class ClienteServiceImpl implements ClienteService {
 				connection = ConnectionManager.getConnection();
 				connection.setAutoCommit(true);
 
-				return dao.findById(connection, clienteId);
+				return dao.findById(connection, idCliente, locale);
 
 			} catch (SQLException e) {
 				logger.error(connection,e);
@@ -47,8 +47,9 @@ public class ClienteServiceImpl implements ClienteService {
 			}
 		}
 
+
 		@Override
-		public Boolean exists(Long clienteId) throws DataException {
+		public List<Cliente> findByCriteria(ClienteCriteria criteria, String locale, int startIndex, int count) throws DataException {
 			Connection connection = null;
 
 			try {
@@ -56,64 +57,7 @@ public class ClienteServiceImpl implements ClienteService {
 				connection = ConnectionManager.getConnection();
 				connection.setAutoCommit(true);
 
-				return dao.exists(connection, clienteId);
-
-			} catch (SQLException e) {
-				logger.error(connection,e);
-				throw new DataException(e);
-			} finally {
-				JDBCUtils.closeConnection(connection);
-			}
-		}
-
-		@Override
-		public List<Cliente> findAll(int startIndex, int count) throws DataException {
-			Connection connection = null;
-
-			try {
-
-				connection = ConnectionManager.getConnection();
-				connection.setAutoCommit(true);
-
-				return dao.findAll(connection, startIndex, count);
-
-			} catch (SQLException e) {
-				logger.error(connection,e);
-				throw new DataException(e);
-			} finally {
-				JDBCUtils.closeConnection(connection);
-			}
-		}
-
-		@Override
-		public long countAll() throws DataException {
-			Connection connection = null;
-
-			try {
-
-				connection = ConnectionManager.getConnection();
-				connection.setAutoCommit(true);
-
-				return dao.countAll(connection);
-
-			} catch (SQLException e) {
-				logger.error(connection,e);
-				throw new DataException(e);
-			} finally {
-				JDBCUtils.closeConnection(connection);
-			}
-		}
-
-		@Override
-		public List<Cliente> findByCriteria(ClienteCriteria c, int startIndex, int count) throws DataException {
-			Connection connection = null;
-
-			try {
-
-				connection = ConnectionManager.getConnection();
-				connection.setAutoCommit(true);
-
-				return dao.findByCriteria(connection, c, startIndex, count);
+				return dao.findByCriteria(connection, criteria, locale, startIndex, count);
 
 			} catch (SQLException e) {
 				logger.error(connection,e);

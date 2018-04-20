@@ -17,37 +17,38 @@ import com.gesto.ecommerce.model.Contacto;
 import com.gesto.ecommerce.model.Idioma;
 
 public class IdiomaDAOImpl implements IdiomaDAO {
-	
+
 	private static Logger logger = LogManager.getLogger(IdiomaDAOImpl.class.getName());
 
 	public IdiomaDAOImpl() {
 	}
-	
+
 	@Override
-	public List<Idioma> findAll(Connection connection, int startIndex, int pageSize) throws DataException {
+	public List<Idioma> findAll(Connection connection, String locale) throws DataException {
 
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
 
-			String queryString = "SELECT idm.cod_idioma, idm.descripcion " + "FROM idioma idm " + "ORDER BY idm.cod_idioma ASC";
+			String queryString = "SELECT idm.cod_idioma, ii.descripcion " + "FROM idioma idm "
+					+ " INNER JOIN i_idioma ii ON ii.cod_idioma = idm.cod_idioma " + " WHERE ii.i_cod_idioma ? "
+					+ " ORDER BY idm.cod_idioma ASC ";
 
 			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
+
+			int i = 1;
+			preparedStatement.setString(i++, locale);
 
 			resultSet = preparedStatement.executeQuery();
 
 			List<Idioma> results = new ArrayList<Idioma>();
 			Idioma idm = null;
-			int currentCount = 0;
 
-			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
-				do {
-					idm = loadNext(resultSet);
-					results.add(idm);
-					currentCount++;
-				} while ((currentCount < pageSize) && resultSet.next());
+			while (resultSet.next()) {
+				idm = loadNext(resultSet);
+				results.add(idm);
 			}
 
 			return results;
@@ -61,21 +62,23 @@ public class IdiomaDAOImpl implements IdiomaDAO {
 		}
 	}
 
-	public List<Idioma> findByEmpleado(Connection connection, Long id) throws DataException {
+	public List<Idioma> findByEmpleado(Connection connection, Long idEmpleado, String locale) throws DataException {
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
 
-			String queryString = "SELECT idm.cod_idioma, idm.descripcion " + "FROM idioma idm "
-					+ " INNER JOIN idioma_empleado ie ON ie.cod_idioma = idm.cod_idioma"
-					+ " INNER JOIN empleado em ON ie.cod_empleado = em.cod_empleado AND em.cod_empleado = ? ";
-
+			String queryString = "SELECT idm.cod_idioma, ii.descripcion " + "FROM idioma idm "
+					+ " INNER JOIN idioma_empleado ie ON ie.cod_idioma = idm.cod_idioma "
+					+ " INNER JOIN i_idioma ii ON ii.cod_idioma = ie.cod_idioma "
+					+ " INNER JOIN empleado em ON ie.cod_empleado = em.cod_empleado "
+					+ " WHERE em.cod_empleado = ?  AND ii.i_cod_idioma = ? ";
 			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			preparedStatement.setLong(i++, id);
+			preparedStatement.setLong(i++, idEmpleado);
+			preparedStatement.setString(i++, locale);
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -90,7 +93,7 @@ public class IdiomaDAOImpl implements IdiomaDAO {
 			return results;
 
 		} catch (SQLException e) {
-			logger.error("Employee ID: " + id, e);
+			logger.error("Employee ID: " +idEmpleado, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -98,21 +101,24 @@ public class IdiomaDAOImpl implements IdiomaDAO {
 		}
 	}
 
-	public List<Idioma> findByCliente(Connection connection, Long clienteId) throws DataException {
+	public List<Idioma> findByCliente(Connection connection, Long idCliente, String locale) throws DataException {
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
 
-			String queryString = "SELECT idm.cod_idioma, idm.descripcion " + "FROM idioma idm "
+			String queryString = "SELECT idm.cod_idioma, ii.descripcion " + "FROM idioma idm "
 					+ " INNER JOIN idioma_cliente idc ON idc.cod_idioma = idm.cod_idioma "
-					+ " INNER JOIN cliente c ON idc.cod_cliente = c.cod_cliente AND c.cod_cliente = ? ";
+					+ " INNER JOIN i_idioma ii ON ii.cod_idioma = idc.cod_idioma "
+					+ " INNER JOIN cliente c ON idc.cod_cliente = c.cod_cliente "
+					+ " WHERE c.cod_cliente = ? AND ii.i_cod_idioma = ? ";
 
 			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			preparedStatement.setLong(i++, clienteId);
+			preparedStatement.setLong(i++, idCliente);
+			preparedStatement.setString(i++, locale);
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -127,15 +133,15 @@ public class IdiomaDAOImpl implements IdiomaDAO {
 			return results;
 
 		} catch (SQLException e) {
-			logger.error("Client ID: " + clienteId, e);
+			logger.error("Client ID: " + idCliente, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
 			JDBCUtils.closeStatement(preparedStatement);
 		}
 	}
-	
-	public List<Idioma> findByContacto(Connection connection, Long contactoCod) throws DataException {
+
+	public List<Idioma> findByContacto(Connection connection, Long idContacto, String locale) throws DataException {
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
@@ -143,13 +149,16 @@ public class IdiomaDAOImpl implements IdiomaDAO {
 
 			String queryString = "SELECT idm.cod_idioma, idm.descripcion " + "FROM idioma idm "
 					+ " INNER JOIN idioma_contactar idco ON idco.cod_idioma = idm.cod_idioma "
-					+ " INNER JOIN contacto co ON idco.cod_contacto = co.cod_contacto AND co.cod_contacto = ? ";
+					+ " INNER JOIN i_idioma ii ON ii.cod_idioma = idco.cod_idioma "
+					+ " INNER JOIN contacto co ON idco.cod_contacto = co.cod_contacto "
+					+ " WHERE co.cod_contacto = ? AND ii.i_cod_idioma = ? ";
 
 			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			preparedStatement.setLong(i++, contactoCod);
+			preparedStatement.setLong(i++, idContacto);
+			preparedStatement.setString(i++, locale);
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -164,14 +173,14 @@ public class IdiomaDAOImpl implements IdiomaDAO {
 			return results;
 
 		} catch (SQLException e) {
-			logger.error("Contact code: " + contactoCod, e);
+			logger.error("Contact code: " + idContacto, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
 			JDBCUtils.closeStatement(preparedStatement);
 		}
 	}
-	
+
 	private Idioma loadNext(ResultSet resultSet) throws SQLException {
 
 		int i = 1;
@@ -179,7 +188,7 @@ public class IdiomaDAOImpl implements IdiomaDAO {
 		String descripcion = resultSet.getString(i++);
 
 		Idioma idm = new Idioma();
-		idm.setId(cod_idioma);
+		idm.setIdIdioma(cod_idioma);
 		idm.setDescripcion(descripcion);
 
 		return idm;

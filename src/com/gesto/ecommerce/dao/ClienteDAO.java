@@ -10,15 +10,9 @@ import com.gesto.ecommerce.service.ClienteCriteria;
 
 public interface ClienteDAO {
 
-	public Cliente findById(Connection connection, Long clienteId) throws InstanceNotFoundException, DataException;
+	public Cliente findById(Connection connection, Long clienteId, String locale) throws InstanceNotFoundException, DataException;
 
-	public Boolean exists(Connection connection, Long clienteId) throws DataException;
-
-	public List<Cliente> findAll(Connection connection, int startIndex, int count) throws DataException;
-
-	public long countAll(Connection connection) throws DataException;
-
-	public List<Cliente> findByCriteria(Connection connection, ClienteCriteria c, int startIndex, int count)
+	public List<Cliente> findByCriteria(Connection connection, ClienteCriteria c, String locale, int startIndex, int count)
 			throws DataException;
 
 }

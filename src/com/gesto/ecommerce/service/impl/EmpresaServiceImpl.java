@@ -2,7 +2,6 @@ package com.gesto.ecommerce.service.impl;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,7 +16,7 @@ import com.gesto.ecommerce.model.Empresa;
 import com.gesto.ecommerce.service.EmpresaService;
 
 public class EmpresaServiceImpl implements EmpresaService {
-	
+
 	private static Logger logger = LogManager.getLogger(EmpresaServiceImpl.class.getName());
 
 	private EmpresaDAO dao = null;
@@ -27,7 +26,7 @@ public class EmpresaServiceImpl implements EmpresaService {
 	}
 
 	@Override
-	public Empresa findById(Long id) throws InstanceNotFoundException, DataException {
+	public Empresa findById(Long idEmpresa) throws InstanceNotFoundException, DataException {
 		Connection connection = null;
 
 		try {
@@ -35,10 +34,10 @@ public class EmpresaServiceImpl implements EmpresaService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.findById(connection, id);
+			return dao.findById(connection, idEmpresa);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(connection, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -46,55 +45,17 @@ public class EmpresaServiceImpl implements EmpresaService {
 	}
 
 	@Override
-	public Boolean exists(Long id) throws DataException {
-		Connection connection = null;
-
-		try {
-
-			connection = ConnectionManager.getConnection();
-			connection.setAutoCommit(true);
-
-			return dao.exists(connection, id);
-
-		} catch (SQLException e) {
-			logger.error(connection,e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeConnection(connection);
-		}
-	}
-
-	@Override
-	public List<Empresa> findAll(int startIndex, int count) throws DataException {
-		Connection connection = null;
-
-		try {
-
-			connection = ConnectionManager.getConnection();
-			connection.setAutoCommit(true);
-
-			return dao.findAll(connection, startIndex, count);
-
-		} catch (SQLException e) {
-			logger.error(connection,e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeConnection(connection);
-		}
-	}
-
-	@Override
-	public Empresa findByTelefono(String telefono) throws InstanceNotFoundException, DataException {
+	public Empresa findByTelefono(String tlf) throws InstanceNotFoundException, DataException {
 		Connection connection = null;
 		try {
 
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.findByTelefono(connection, telefono);
+			return dao.findByTelefono(connection, tlf);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(connection, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);

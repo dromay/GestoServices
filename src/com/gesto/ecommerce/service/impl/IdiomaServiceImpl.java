@@ -27,7 +27,7 @@ public class IdiomaServiceImpl implements IdiomaService {
 		}
 		
 		@Override
-		public List<Idioma> findAll(int startIndex, int pageSize) throws DataException {
+		public List<Idioma> findAll(String locale) throws DataException {
 			Connection connection = null;
 
 			try {
@@ -35,7 +35,7 @@ public class IdiomaServiceImpl implements IdiomaService {
 				connection = ConnectionManager.getConnection();
 				connection.setAutoCommit(true);
 
-				return dao.findAll(connection, startIndex, pageSize);
+				return dao.findAll(connection, locale);
 
 			} catch (SQLException e) {
 				logger.error(connection,e);
@@ -46,7 +46,7 @@ public class IdiomaServiceImpl implements IdiomaService {
 		}
 
 		@Override
-		public List<Idioma> findByCliente(Long clienteId) throws DataException {
+		public List<Idioma> findByCliente(Long idCliente, String locale) throws DataException {
 			Connection connection = null;
 
 			try {
@@ -54,7 +54,7 @@ public class IdiomaServiceImpl implements IdiomaService {
 				connection = ConnectionManager.getConnection();
 				connection.setAutoCommit(true);
 
-				return dao.findByCliente(connection, clienteId);
+				return dao.findByCliente(connection, idCliente, locale);
 
 			} catch (SQLException e) {
 				logger.error(connection,e);
@@ -65,7 +65,7 @@ public class IdiomaServiceImpl implements IdiomaService {
 		}
 
 		@Override
-		public List<Idioma> findByEmpleado(Long id) throws DataException {
+		public List<Idioma> findByEmpleado(Long idEmpleado, String locale) throws DataException {
 			Connection connection = null;
 
 			try {
@@ -73,7 +73,7 @@ public class IdiomaServiceImpl implements IdiomaService {
 				connection = ConnectionManager.getConnection();
 				connection.setAutoCommit(true);
 
-				return dao.findByEmpleado(connection, id);
+				return dao.findByEmpleado(connection, idEmpleado, locale);
 
 			} catch (SQLException e) {
 				logger.error(connection,e);
@@ -84,7 +84,7 @@ public class IdiomaServiceImpl implements IdiomaService {
 		}
 		
 		@Override
-		public List<Idioma> findByContacto(Long codContacto) throws DataException {
+		public List<Idioma> findByContacto(Long idContacto, String locale) throws DataException {
 			Connection connection = null;
 
 			try {
@@ -92,7 +92,7 @@ public class IdiomaServiceImpl implements IdiomaService {
 				connection = ConnectionManager.getConnection();
 				connection.setAutoCommit(true);
 
-				return dao.findByContacto(connection, codContacto);
+				return dao.findByContacto(connection, idContacto, locale);
 
 			} catch (SQLException e) {
 				logger.error(connection,e);

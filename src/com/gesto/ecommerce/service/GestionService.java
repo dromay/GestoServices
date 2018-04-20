@@ -13,21 +13,15 @@ import com.gesto.ecommerce.model.Ticket;
 
 public interface GestionService {
 	
-	public Gestion findById(Long idGestion) throws InstanceNotFoundException, DataException;
+	public Gestion findById(Long idGestion, String locale) throws InstanceNotFoundException, DataException;
 
-	public Boolean exists(Long idGestion) throws DataException;
-
-	public List<Gestion> findAll(int startIndex, int count) throws DataException;
-
-	public long countAll() throws DataException;
-
-	public List<Gestion> findByCliente(Long clienteId, int startIndex, int pageSize) throws DataException;
+	public List<Gestion> findByCliente(Long idCliente, String locale, int startIndex, int pageSize) throws DataException;
 	
-	public List<Gestion> findByEmpleado(Long id, int startIndex, int pageSize) throws DataException;
+	public List<Gestion> findByEmpleado(Long idEmpleado, String locale, int startIndex, int pageSize) throws DataException;
 
-	public Gestion create(Gestion g, Ticket t) throws DuplicateInstanceException, DataException;
-
-	public List<Gestion> findByCriteria(GestionCriteria gc, int startIndex, int count)
+	public List<Gestion> findByCriteria(GestionCriteria criteria, String locale, int startIndex, int count)
 			throws DataException;
+	
+	public Gestion create(Gestion g, Ticket t) throws DuplicateInstanceException, DataException;
 
 }

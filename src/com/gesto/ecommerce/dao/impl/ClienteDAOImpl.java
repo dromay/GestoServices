@@ -40,7 +40,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 	}
 
 	@Override
-	public Cliente findById(Connection connection, Long clienteId) throws InstanceNotFoundException, DataException {
+	public Cliente findById(Connection connection, Long idCliente, String locale) throws InstanceNotFoundException, DataException {
 
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -53,129 +53,25 @@ public class ClienteDAOImpl implements ClienteDAO {
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			preparedStatement.setLong(i++, clienteId);
+			preparedStatement.setLong(i++, idCliente);
 
 			resultSet = preparedStatement.executeQuery();
 
-			Cliente e = null;
-
-			if (resultSet.next()) {
-				e = loadNext(connection, resultSet);
-			} else {
-				logger.error("Client with id " + clienteId + " not found",
-						Cliente.class.getName());
-				throw new InstanceNotFoundException("Client with id " + clienteId + " not found",
-						Cliente.class.getName());
-			}
-
-			return e;
-
-		} catch (SQLException e) {
-			logger.error("Client ID: "+clienteId, e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-	}
-	
-	@Override
-	public Boolean exists(Connection connection, Long clienteId) throws DataException {
-		boolean exist = false;
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = "SELECT c.cod_cliente, c.tipo_cliente, c.nombre_cliente, c.doc_identidad "
-					+ "FROM cliente c  " + "WHERE c.cod_cliente = ? ";
-
-			preparedStatement = connection.prepareStatement(queryString);
-
-			int i = 1;
-			preparedStatement.setLong(i++, clienteId);
-
-			resultSet = preparedStatement.executeQuery();
-
-			if (resultSet.next()) {
-				exist = true;
-			}
-
-		} catch (SQLException e) {
-			logger.error("Client ID: "+clienteId, e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-
-		return exist;
-	}
-
-	@Override
-	public List<Cliente> findAll(Connection connection, int startIndex, int count) throws DataException {
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = "SELECT c.cod_cliente, c.tipo_cliente, c.nombre_cliente, c.doc_identidad "
-					+ "FROM cliente c  " + "ORDER BY c.cod_cliente ASC";
-
-			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-
-			resultSet = preparedStatement.executeQuery();
-
-			List<Cliente> results = new ArrayList<Cliente>();
 			Cliente c = null;
-			int currentCount = 0;
 
-			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
-				do {
-					c = loadNext(connection, resultSet);
-					results.add(c);
-					currentCount++;
-				} while ((currentCount < count) && resultSet.next());
-			}
-
-			return results;
-
-		} catch (SQLException e) {
-			logger.error(e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-	}
-
-	@Override
-	public long countAll(Connection connection) throws DataException {
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = " SELECT count(*) " + " FROM cliente";
-
-			preparedStatement = connection.prepareStatement(queryString);
-
-			resultSet = preparedStatement.executeQuery();
-
-			int i = 1;
 			if (resultSet.next()) {
-				return resultSet.getLong(i++);
+				c = loadNext(connection, resultSet, locale);
 			} else {
-				logger.error("Unexpected condition trying to retrieve count value");
-				throw new DataException("Unexpected condition trying to retrieve count value");
+				logger.error("Client with id " + idCliente + " not found",
+						Cliente.class.getName());
+				throw new InstanceNotFoundException("Client with id " + idCliente + " not found",
+						Cliente.class.getName());
 			}
 
+			return c;
+
 		} catch (SQLException e) {
-			logger.error(e);
+			logger.error("Client ID: "+idCliente, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -184,7 +80,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 	}
 
 	@Override
-	public List<Cliente> findByCriteria(Connection connection, ClienteCriteria criteria, int startIndex, int count)
+	public List<Cliente> findByCriteria(Connection connection, ClienteCriteria criteria, String locale, int startIndex, int count)
 			throws DataException {
 
 		PreparedStatement preparedStatement = null;
@@ -211,6 +107,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 			if (criteria.getIdIdiomaCriteria() != null) {
 				addClause2(queryString, first, " INNER JOIN idioma_cliente ic ON ic.cod_cliente = c.cod_cliente ");
 				addClause2(queryString, first, " INNER JOIN idioma i ON i.cod_idioma = ic.cod_idioma ");
+				addClause2(queryString, first, " INNER JOIN i_idioma ii ON ii.cod_idioma = i.cod_idioma ");
 				first = false;
 			}
 
@@ -291,7 +188,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 
 			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
 				do {
-					e = loadNext(connection, resultSet);
+					e = loadNext(connection, resultSet, locale);
 					results.add(e);
 					currentCount++;
 				} while ((currentCount < count) && resultSet.next());
@@ -439,7 +336,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 		queryString.append(first ? "" : "").append(clause);
 	}
 
-	private Cliente loadNext(Connection connection, ResultSet resultSet) throws SQLException, DataException {
+	private Cliente loadNext(Connection connection, ResultSet resultSet, String locale) throws SQLException, DataException {
 
 		int i = 1;
 		Long cod_cliente = resultSet.getLong(i++);
@@ -448,16 +345,16 @@ public class ClienteDAOImpl implements ClienteDAO {
 		String doc_identidad = resultSet.getString(i++);
 
 		Cliente c = new Cliente();
-		c.setClienteId(cod_cliente);
+		c.setIdCliente(cod_cliente);
 		c.setTipo(tipo_cliente);
 		c.setNombre(nombre_cliente);
 		c.setDocIdentidad(doc_identidad);
 
-		List<Contacto> contactos = contactoDAO.findByCliente(connection, cod_cliente);
+		List<Contacto> contactos = contactoDAO.findByCliente(connection, cod_cliente, locale);
 		c.setContactos(contactos);
-		List<Idioma> idiomas = idiomaDAO.findByCliente(connection, cod_cliente);
+		List<Idioma> idiomas = idiomaDAO.findByCliente(connection, cod_cliente, locale);
 		c.setIdiomas(idiomas);
-		List<Gestion> gestiones = gestionDAO.findByCliente(connection, cod_cliente, 1, Integer.MAX_VALUE);
+		List<Gestion> gestiones = gestionDAO.findByCliente(connection, cod_cliente, locale, 1, Integer.MAX_VALUE);
 		c.setGestiones(gestiones);
 
 		return c;

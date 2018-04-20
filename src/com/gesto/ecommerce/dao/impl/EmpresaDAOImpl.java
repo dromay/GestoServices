@@ -24,7 +24,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
 	}
 
 	@Override
-	public Empresa findById(Connection connection, Long id) throws InstanceNotFoundException, DataException {
+	public Empresa findById(Connection connection, Long idEmpresa) throws InstanceNotFoundException, DataException {
 
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -37,7 +37,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			preparedStatement.setLong(i++, id);
+			preparedStatement.setLong(i++, idEmpresa);
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -46,14 +46,14 @@ public class EmpresaDAOImpl implements EmpresaDAO {
 			if (resultSet.next()) {
 				empr = loadNext(resultSet);
 			} else {
-				logger.error("Company with id " + id + "not found", Empresa.class.getName());
-				throw new InstanceNotFoundException("Company with id " + id + "not found", Empresa.class.getName());
+				logger.error("Company with id " + idEmpresa + "not found", Empresa.class.getName());
+				throw new InstanceNotFoundException("Company with id " + idEmpresa + "not found", Empresa.class.getName());
 			}
 
 			return empr;
 
 		} catch (SQLException e) {
-			logger.error("Company ID: " + id, e);
+			logger.error("Company ID: " + idEmpresa, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -61,7 +61,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
 		}
 	}
 	@Override
-	public Empresa findByTelefono(Connection connection, String telefono) throws InstanceNotFoundException, DataException {
+	public Empresa findByTelefono(Connection connection, String tlf) throws InstanceNotFoundException, DataException {
 
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -77,7 +77,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			preparedStatement.setString(i++, telefono);
+			preparedStatement.setString(i++, tlf);
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -86,88 +86,14 @@ public class EmpresaDAOImpl implements EmpresaDAO {
 			if (resultSet.next()) {
 				empr = loadNext(resultSet);
 			} else {
-				logger.error("Company with tlf " + telefono + "not found", Empresa.class.getName());
-				throw new InstanceNotFoundException("Company with tlf " + telefono + "not found", Empresa.class.getName());
+				logger.error("Company with tlf " + tlf + "not found", Empresa.class.getName());
+				throw new InstanceNotFoundException("Company with tlf " + tlf + "not found", Empresa.class.getName());
 			}
 
 			return empr;
 
 		} catch (SQLException e) {
-			logger.error("Telephone number: " + telefono, e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-	}
-	
-
-	@Override
-	public Boolean exists(Connection connection, Long id) throws DataException {
-		boolean exist = false;
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = "SELECT empr.cod_empresa, empr.descripcion " + "FROM empresa_receptor empr "
-					+ "WHERE empr.cod_empresa = ? ";
-
-			preparedStatement = connection.prepareStatement(queryString);
-
-			int i = 1;
-			preparedStatement.setLong(i++, id);
-
-			resultSet = preparedStatement.executeQuery();
-
-			if (resultSet.next()) {
-				exist = true;
-			}
-
-		} catch (SQLException e) {
-			logger.error("Company ID: " + id, e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-
-		return exist;
-	}
-
-	@Override
-	public List<Empresa> findAll(Connection connection, int startIndex, int count) throws DataException {
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = "SELECT empr.cod_empresa, empr.descripcion " + "FROM empresa_receptor empr "
-					+ "ORDER BY empr.descripcion ASC";
-
-			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-
-			resultSet = preparedStatement.executeQuery();
-
-			List<Empresa> results = new ArrayList<Empresa>();
-			Empresa empr = null;
-			int currentCount = 0;
-
-			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
-				do {
-					empr = loadNext(resultSet);
-					results.add(empr);
-					currentCount++;
-				} while ((currentCount < count) && resultSet.next());
-			}
-
-			return results;
-
-		} catch (SQLException e) {
-			logger.error(e);
+			logger.error("Telephone number: " + tlf, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -182,7 +108,7 @@ public class EmpresaDAOImpl implements EmpresaDAO {
 		String descripcion = resultSet.getString(i++);
 
 		Empresa empr = new Empresa();
-		empr.setId(cod_empresa);
+		empr.setIdEmpresa(cod_empresa);
 		empr.setDescripcion(descripcion);
 
 		return empr;

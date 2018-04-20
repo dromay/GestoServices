@@ -26,8 +26,9 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 		dao = new DepartamentoDAOImpl();
 	}
 
+	
 	@Override
-	public Departamento findById(Long extDepartamento) throws InstanceNotFoundException, DataException {
+	public List<Departamento> findAll(String locale) throws DataException {
 		Connection connection = null;
 
 		try {
@@ -35,18 +36,18 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.findById(connection, extDepartamento);
+			return dao.findAll(connection, locale);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(e.getMessage(),e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
 		}
 	}
-
+	
 	@Override
-	public Boolean exists(Long extDepartamento) throws DataException {
+	public Departamento findById(Long extDepartamento, String locale) throws InstanceNotFoundException, DataException {
 		Connection connection = null;
 
 		try {
@@ -54,33 +55,18 @@ public class DepartamentoServiceImpl implements DepartamentoService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.exists(connection, extDepartamento);
+			return dao.findById(connection, extDepartamento, locale);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(e.getMessage(),e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
 		}
 	}
 
-	@Override
-	public List<Departamento> findAll(int startIndex, int count) throws DataException {
-		Connection connection = null;
+	
 
-		try {
 
-			connection = ConnectionManager.getConnection();
-			connection.setAutoCommit(true);
-
-			return dao.findAll(connection, startIndex, count);
-
-		} catch (SQLException e) {
-			logger.error(connection,e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeConnection(connection);
-		}
-	}
 
 }

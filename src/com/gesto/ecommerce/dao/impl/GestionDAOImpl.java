@@ -38,7 +38,7 @@ public class GestionDAOImpl implements GestionDAO {
 	}
 
 	@Override
-	public Gestion findById(Connection connection, Long idGestion) throws InstanceNotFoundException, DataException {
+	public Gestion findById(Connection connection, Long idGestion, String locale) throws InstanceNotFoundException, DataException {
 
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -58,7 +58,7 @@ public class GestionDAOImpl implements GestionDAO {
 			Gestion g = null;
 
 			if (resultSet.next()) {
-				g = loadNext(connection, resultSet);
+				g = loadNext(connection, resultSet, locale);
 			} else {
 				logger.error("Gestion with id " + idGestion + "not found",Gestion.class.getName());
 				throw new InstanceNotFoundException("Gestion with id " + idGestion + "not found",Gestion.class.getName());
@@ -75,80 +75,7 @@ public class GestionDAOImpl implements GestionDAO {
 		}
 	}
 
-	@Override
-	public Boolean exists(Connection connection, Long idGestion) throws DataException {
-		boolean exist = false;
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = "SELECT g.cod_gestion, g.cod_cliente, g.cod_empleado, g.cod_empresa, g.fecha_inicio "
-					+ "FROM gestion g " + "WHERE g.cod_gestion = ? ";
-
-			preparedStatement = connection.prepareStatement(queryString);
-
-			int i = 1;
-			preparedStatement.setLong(i++, idGestion);
-
-			resultSet = preparedStatement.executeQuery();
-
-			if (resultSet.next()) {
-				exist = true;
-			}
-
-		} catch (SQLException e) {
-			logger.error("Gestion ID: " + idGestion, e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-
-		return exist;
-	}
-
-	@Override
-	public List<Gestion> findAll(Connection connection, int startIndex, int count) throws DataException {
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = "SELECT g.cod_gestion, g.cod_cliente, g.cod_empleado, g.cod_empresa, g.fecha_inicio "
-					+ "FROM gestion g " + "ORDER BY g.cod_gestion ASC";
-
-			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-
-			resultSet = preparedStatement.executeQuery();
-
-			List<Gestion> results = new ArrayList<Gestion>();
-			Gestion g = null;
-			int currentCount = 0;
-
-			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
-				do {
-					g = loadNext(connection, resultSet);
-					results.add(g);
-					currentCount++;
-				} while ((currentCount < count) && resultSet.next());
-			}
-
-			return results;
-
-		} catch (SQLException e) {
-			logger.error(e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-	}
-
-	public List<Gestion> findByCliente(Connection connection, Long clienteID, int startIndex, int pageSize)
+	public List<Gestion> findByCliente(Connection connection, Long idCliente, String locale, int startIndex, int pageSize)
 			throws DataException {
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -163,7 +90,7 @@ public class GestionDAOImpl implements GestionDAO {
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			preparedStatement.setLong(i++, clienteID);
+			preparedStatement.setLong(i++, idCliente);
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -175,7 +102,7 @@ public class GestionDAOImpl implements GestionDAO {
 
 			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
 				do {
-					g = loadNext(connection, resultSet);
+					g = loadNext(connection, resultSet, locale);
 					results.add(g);
 					currentCount++;
 				} while ((currentCount < pageSize) && resultSet.next());
@@ -183,7 +110,7 @@ public class GestionDAOImpl implements GestionDAO {
 			return results;
 
 		} catch (SQLException e) {
-			logger.error("Client ID: " + clienteID, e);
+			logger.error("Client ID: " + idCliente, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -191,7 +118,7 @@ public class GestionDAOImpl implements GestionDAO {
 		}
 	}
 
-	public List<Gestion> findByEmpleado(Connection connection, Long id, int startIndex, int pageSize)
+	public List<Gestion> findByEmpleado(Connection connection, Long idEmpleado, String locale, int startIndex, int pageSize)
 			throws DataException {
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -206,7 +133,7 @@ public class GestionDAOImpl implements GestionDAO {
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			preparedStatement.setLong(i++, id);
+			preparedStatement.setLong(i++, idEmpleado);
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -218,7 +145,7 @@ public class GestionDAOImpl implements GestionDAO {
 
 			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
 				do {
-					g = loadNext(connection, resultSet);
+					g = loadNext(connection, resultSet, locale);
 					results.add(g);
 					currentCount++;
 				} while ((currentCount < pageSize) && resultSet.next());
@@ -226,125 +153,16 @@ public class GestionDAOImpl implements GestionDAO {
 			return results;
 
 		} catch (SQLException e) {
-			logger.error("Employee ID: " + id, e);
+			logger.error("Employee ID: " + idEmpleado, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
 			JDBCUtils.closeStatement(preparedStatement);
 		}
 	}
-
+	
 	@Override
-	public long countAll(Connection connection) throws DataException {
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = " SELECT count(*) " + " FROM gestion";
-
-			preparedStatement = connection.prepareStatement(queryString);
-
-			resultSet = preparedStatement.executeQuery();
-
-			int i = 1;
-			if (resultSet.next()) {
-				return resultSet.getLong(i++);
-			} else {
-				logger.error("Unexpected condition trying to retrieve count value");
-				throw new DataException("Unexpected condition trying to retrieve count value");
-			}
-
-		} catch (SQLException e) {
-			logger.error(e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-	}
-
-	private Gestion loadNext(Connection connection, ResultSet resultSet) throws SQLException, DataException {
-
-		int i = 1;
-		Long cod_gestion = resultSet.getLong(i++);
-		Long cod_cliente = resultSet.getLong(i++);
-		Long cod_empleado = resultSet.getLong(i++);
-		Long cod_empresa = resultSet.getLong(i++);
-		Date fecha_inicio = resultSet.getDate(i++);
-
-		Gestion g = new Gestion();
-		g.setIdGestion(cod_gestion);
-		g.setIdCliente(cod_cliente);
-		g.setIdEmpleado(cod_empleado);
-		g.setIdEmpresa(cod_empresa);
-		g.setFechaInicio(fecha_inicio);
-
-		List<Ticket> tickets = ticketDAO.findByGestion(connection, cod_gestion);
-		g.setTickets(tickets);
-
-		List<Contacto> contactos = contactoDAO.findByGestion(connection, cod_gestion, 1, Integer.MAX_VALUE);
-		g.setContactos(contactos);
-
-		return g;
-	}
-
-	private void addClause(StringBuilder queryString, boolean first, String clause) {
-		queryString.append(first ? " WHERE " : " AND ").append(clause);
-	}
-
-	private void addClause2(StringBuilder queryString, boolean first, String clause) {
-		queryString.append(first ? "" : "").append(clause);
-	}
-
-	@Override
-	public Gestion create(Connection connection, Gestion g, Ticket t) throws DuplicateInstanceException, DataException {
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-		try {
-
-			String queryString = "INSERT INTO gestion(cod_cliente, cod_empleado, cod_empresa, fecha_inicio) "
-					+ "VALUES (?, ?, ?, ?)";
-
-			preparedStatement = connection.prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
-
-			int i = 1;
-			preparedStatement.setLong(i++, g.getIdCliente());
-			preparedStatement.setLong(i++, g.getIdEmpleado());
-			preparedStatement.setLong(i++, g.getIdEmpresa());
-			preparedStatement.setDate(i++, new java.sql.Date(g.getFechaInicio().getTime()));
-
-			int insertedRows = preparedStatement.executeUpdate();
-
-			if (insertedRows == 0) {
-				logger.error("Can not add row to table 'Gestion'");
-				throw new SQLException("Can not add row to table 'Gestion'");
-			}
-
-			resultSet = preparedStatement.getGeneratedKeys();
-			if (resultSet.next()) {
-				Long pk = resultSet.getLong(1);
-				g.setIdGestion(pk);
-			} else {
-				logger.error("Unable to fetch autogenerated primary key");
-				throw new DataException("Unable to fetch autogenerated primary key");
-			}
-
-			return g;
-
-		} catch (SQLException e) {
-			logger.error(ToStringBuilder.reflectionToString(g), e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-	}
-
-	@Override
-	public List<Gestion> findByCriteria(Connection connection, GestionCriteria criteria, int startIndex, int count)
+	public List<Gestion> findByCriteria(Connection connection, GestionCriteria criteria, String locale, int startIndex, int count)
 			throws DataException {
 
 		PreparedStatement preparedStatement = null;
@@ -466,7 +284,7 @@ public class GestionDAOImpl implements GestionDAO {
 
 			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
 				do {
-					g = loadNext(connection, resultSet);
+					g = loadNext(connection, resultSet, locale);
 					results.add(g);
 					currentCount++;
 				} while ((currentCount < count) && resultSet.next());
@@ -481,6 +299,85 @@ public class GestionDAOImpl implements GestionDAO {
 			JDBCUtils.closeResultSet(resultSet);
 			JDBCUtils.closeStatement(preparedStatement);
 		}
+	}
+
+	@Override
+	public Gestion create(Connection connection, Gestion g, Ticket t) throws DuplicateInstanceException, DataException {
+
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		try {
+
+			String queryString = "INSERT INTO gestion(cod_cliente, cod_empleado, cod_empresa, fecha_inicio) "
+					+ "VALUES (?, ?, ?, ?)";
+
+			preparedStatement = connection.prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
+
+			int i = 1;
+			preparedStatement.setLong(i++, g.getIdCliente());
+			preparedStatement.setLong(i++, g.getIdEmpleado());
+			preparedStatement.setLong(i++, g.getIdEmpresa());
+			preparedStatement.setDate(i++, new java.sql.Date(g.getFechaInicio().getTime()));
+
+			int insertedRows = preparedStatement.executeUpdate();
+
+			if (insertedRows == 0) {
+				logger.error("Can not add row to table 'Gestion'");
+				throw new SQLException("Can not add row to table 'Gestion'");
+			}
+
+			resultSet = preparedStatement.getGeneratedKeys();
+			if (resultSet.next()) {
+				Long pk = resultSet.getLong(1);
+				g.setIdGestion(pk);
+			} else {
+				logger.error("Unable to fetch autogenerated primary key");
+				throw new DataException("Unable to fetch autogenerated primary key");
+			}
+
+			return g;
+
+		} catch (SQLException e) {
+			logger.error(ToStringBuilder.reflectionToString(g), e);
+			throw new DataException(e);
+		} finally {
+			JDBCUtils.closeResultSet(resultSet);
+			JDBCUtils.closeStatement(preparedStatement);
+		}
+	}
+	
+
+	private void addClause(StringBuilder queryString, boolean first, String clause) {
+		queryString.append(first ? " WHERE " : " AND ").append(clause);
+	}
+
+	private void addClause2(StringBuilder queryString, boolean first, String clause) {
+		queryString.append(first ? "" : "").append(clause);
+	}
+	
+	private Gestion loadNext(Connection connection, ResultSet resultSet, String locale) throws SQLException, DataException {
+
+		int i = 1;
+		Long cod_gestion = resultSet.getLong(i++);
+		Long cod_cliente = resultSet.getLong(i++);
+		Long cod_empleado = resultSet.getLong(i++);
+		Long cod_empresa = resultSet.getLong(i++);
+		Date fecha_inicio = resultSet.getDate(i++);
+
+		Gestion g = new Gestion();
+		g.setIdGestion(cod_gestion);
+		g.setIdCliente(cod_cliente);
+		g.setIdEmpleado(cod_empleado);
+		g.setIdEmpresa(cod_empresa);
+		g.setFechaInicio(fecha_inicio);
+
+		List<Ticket> tickets = ticketDAO.findByGestion(connection, cod_gestion);
+		g.setTickets(tickets);
+
+		List<Contacto> contactos = contactoDAO.findByGestion(connection, cod_gestion, locale);
+		g.setContactos(contactos);
+
+		return g;
 	}
 
 }

@@ -3,10 +3,15 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 public class ConnectionManager	 {
 
+	private static Logger logger = LogManager.getLogger(ConnectionManager.class.getName());
+	
 	private static ResourceBundle dbConfiguration = ResourceBundle.getBundle("DBConfiguration");
 
 	private static final String DRIVER_CLASS_NAME_PARAMETER = "jdbc.driver.classname";
@@ -40,8 +45,7 @@ public class ConnectionManager	 {
 			
 
 		} catch (Exception e) {
-			// JAL: TODO Logger
-			e.printStackTrace(); 
+			logger.fatal(e.getMessage(), e);
 		}
 
 	}

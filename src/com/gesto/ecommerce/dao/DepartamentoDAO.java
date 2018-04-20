@@ -9,10 +9,8 @@ import com.gesto.ecommerce.model.Departamento;
 
 public interface DepartamentoDAO {
 
-	public List<Departamento> findAll(Connection connection, int startIndex, int count) throws DataException;
+	public List<Departamento> findAll(Connection connection, String locale) throws DataException;
 
-	public Boolean exists(Connection connection, Long extDepartamento) throws DataException;
-
-	public Departamento findById(Connection connection, Long extDepartamento)
+	public Departamento findById(Connection connection, Long extDepartamento, String locale)
 			throws InstanceNotFoundException, DataException;
 }

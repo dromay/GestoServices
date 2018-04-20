@@ -12,21 +12,15 @@ import com.gesto.ecommerce.service.GestionCriteria;
 
 public interface GestionDAO {
 
-	public Gestion findById(Connection connection, Long idGestion) throws InstanceNotFoundException, DataException;
+	public Gestion findById(Connection connection, Long idGestion, String locale) throws InstanceNotFoundException, DataException;
 
-	public Boolean exists(Connection connection, Long idGestion) throws DataException;
-
-	public List<Gestion> findAll(Connection connection, int startIndex, int count) throws DataException;
-
-	public long countAll(Connection connection) throws DataException;
-
-	public List<Gestion> findByCliente(Connection connection, Long clienteId, int startIndex, int pageSize) throws DataException;
+	public List<Gestion> findByCliente(Connection connection, Long idCliente, String locale, int startIndex, int pageSize) throws DataException;
 	
-	public List<Gestion> findByEmpleado(Connection connection, Long id, int startIndex, int pageSize) throws DataException;
+	public List<Gestion> findByEmpleado(Connection connection, Long idEmpleado, String locale, int startIndex, int pageSize) throws DataException;
 
-	public Gestion create(Connection connection, Gestion g, Ticket t) throws DuplicateInstanceException, DataException;
-
-	public List<Gestion> findByCriteria(Connection connection, GestionCriteria gc, int startIndex, int count)
+	public List<Gestion> findByCriteria(Connection connection, GestionCriteria criteria, String locale, int startIndex, int count)
 			throws DataException;
+	
+	public Gestion create(Connection connection, Gestion g, Ticket t) throws DuplicateInstanceException, DataException;
 
 }

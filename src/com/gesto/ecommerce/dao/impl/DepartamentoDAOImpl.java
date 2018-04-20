@@ -17,28 +17,69 @@ import com.gesto.ecommerce.exceptions.DataException;
 import com.gesto.ecommerce.exceptions.InstanceNotFoundException;
 
 public class DepartamentoDAOImpl implements DepartamentoDAO {
-	
+
 	private static Logger logger = LogManager.getLogger(DepartamentoDAOImpl.class.getName());
 
 	public DepartamentoDAOImpl() {
 	}
 
 	@Override
-	public Departamento findById(Connection connection, Long extDepartamento)
+	public List<Departamento> findAll(Connection connection, String locale) throws DataException {
+
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
+		try {
+
+			String queryString = "SELECT dep.ext_departamento, ii.descripcion " + "FROM departamento dep "
+					+ " INNER JOIN i_idioma_departamento ii ON ii.ext_departamento = dep.ext_departamento "
+					+ " WHERE ii.cod_idioma = ? " + " ORDER BY ii.descripcion ASC ";
+
+			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+
+			int i = 1;
+			preparedStatement.setString(i++, locale);
+
+			resultSet = preparedStatement.executeQuery();
+
+			List<Departamento> results = new ArrayList<Departamento>();
+			Departamento dep = null;
+
+			while (resultSet.next()) {
+				dep = loadNext(resultSet);
+				results.add(dep);
+			}
+
+			return results;
+
+		} catch (SQLException e) {
+			logger.error(e);
+			throw new DataException(e);
+		} finally {
+			JDBCUtils.closeResultSet(resultSet);
+			JDBCUtils.closeStatement(preparedStatement);
+		}
+	}
+
+	@Override
+	public Departamento findById(Connection connection, Long extDepartamento, String locale)
 			throws InstanceNotFoundException, DataException {
 
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
-			String queryString = "SELECT dep.ext_departamento, dep.descripcion " + "FROM departamento dep "
-					+ "WHERE dep.ext_departamento = ? ";
+			String queryString = "SELECT dep.ext_departamento, ii.descripcion " + "FROM departamento dep "
+					+ " INNER JOIN i_idioma_departamento ii ON ii.ext_departamento = dep.ext_departamento "
+					+ " WHERE dep.ext_departamento = ? AND ii.cod_idioma = ? ";
 
 			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
 			preparedStatement.setLong(i++, extDepartamento);
+			preparedStatement.setString(i++, locale);
 
 			resultSet = preparedStatement.executeQuery();
 
@@ -47,9 +88,9 @@ public class DepartamentoDAOImpl implements DepartamentoDAO {
 			if (resultSet.next()) {
 				dep = loadNext(resultSet);
 			} else {
-				logger.error("Department with extension " + extDepartamento + "not found",
+				logger.error("Department with extension " + extDepartamento + " and locale "+locale+" not found",
 						Departamento.class.getName());
-				throw new InstanceNotFoundException("Department with extension " + extDepartamento + "not found",
+				throw new InstanceNotFoundException("Department with extension " + extDepartamento +" and locale "+locale+ " not found",
 						Departamento.class.getName());
 			}
 
@@ -57,79 +98,6 @@ public class DepartamentoDAOImpl implements DepartamentoDAO {
 
 		} catch (SQLException e) {
 			logger.error("Department extension: " + extDepartamento, e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-	}
-
-	@Override
-	public Boolean exists(Connection connection, Long extDepartamento) throws DataException {
-		boolean exist = false;
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = "SELECT dep.ext_departamento, dep.descripcion " + "FROM departamento dep "
-					+ "WHERE dep.ext_departamento = ? ";
-
-			preparedStatement = connection.prepareStatement(queryString);
-
-			int i = 1;
-			preparedStatement.setLong(i++, extDepartamento);
-
-			resultSet = preparedStatement.executeQuery();
-
-			if (resultSet.next()) {
-				exist = true;
-			}
-
-		} catch (SQLException e) {
-			logger.error("Department extension: " + extDepartamento, e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-
-		return exist;
-	}
-
-	@Override
-	public List<Departamento> findAll(Connection connection, int startIndex, int count) throws DataException {
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = "SELECT dep.ext_departamento, dep.descripcion " + "FROM departamento dep "
-					+ "ORDER BY dep.descripcion ASC";
-
-			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-
-			resultSet = preparedStatement.executeQuery();
-
-			List<Departamento> results = new ArrayList<Departamento>();
-			Departamento dep = null;
-			int currentCount = 0;
-
-			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
-				do {
-					dep = loadNext(resultSet);
-					results.add(dep);
-					currentCount++;
-				} while ((currentCount < count) && resultSet.next());
-			}
-
-			return results;
-
-		} catch (SQLException e) {
-			logger.error(e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);

@@ -31,9 +31,53 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 	public EmpleadoDAOImpl() {
 		idiomaDAO = new IdiomaDAOImpl();
 	}
+	
+	@Override
+	public List<Empleado> findAll(Connection connection, String locale) throws DataException {
+
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+
+		try {
+
+			String queryString = " SELECT em.cod_empleado, em.usuario, em.password, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja "
+					+ " FROM empleado em "
+					+ " INNER JOIN idioma_empleado ie ON ie.cod_empleado = em.cod_empleado "
+					+ " INNER JOIN idioma i ON i.cod_idioma = ie.cod_idioma "
+					+ " INNER JOIN i_idioma ii ON i.cod_idioma = ii.cod_idioma "
+					+ " WHERE ii.cod_idioma = ? "
+					+ " GROUP BY em.cod_empleado "
+					+ " ORDER BY em.cod_empleado ASC ";
+
+			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+
+			int i = 1;
+			preparedStatement.setString(i++, locale);
+
+			resultSet = preparedStatement.executeQuery();
+
+			List<Empleado> results = new ArrayList<Empleado>();
+			Empleado em = null;
+
+			while (resultSet.next()) {
+				em = loadNext(connection, resultSet,locale);
+				results.add(em);
+			}
+
+			return results;
+
+		} catch (SQLException e) {
+			logger.error(e);
+			throw new DataException(e);
+		} finally {
+			JDBCUtils.closeResultSet(resultSet);
+			JDBCUtils.closeStatement(preparedStatement);
+		}
+	}
 
 	@Override
-	public Empleado findByUsuario(Connection connection, String usuario)
+	public Empleado findByUsuario(Connection connection, String usuario, String locale)
 			throws InstanceNotFoundException, DataException {
 
 		PreparedStatement preparedStatement = null;
@@ -50,11 +94,11 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 			preparedStatement.setString(i++, usuario);
 
 			resultSet = preparedStatement.executeQuery();
-
+			
 			Empleado em = null;
 
 			if (resultSet.next()) {
-				em = loadNext(connection, resultSet);
+				em = loadNext(connection, resultSet, locale);
 			} else {
 				logger.error("Employee with user " + usuario + "not found ",
 						Empleado.class.getName());
@@ -74,102 +118,41 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 	}
 	
 	@Override
-	public List<Empleado> findAll(Connection connection, int startIndex, int count) throws DataException {
+	public Empleado findSupervisor(Connection connection, Empleado es, String locale)
+			throws InstanceNotFoundException, DataException {
 
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 
 		try {
-
-			String queryString = " SELECT em.cod_empleado, em.usuario, em.password, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja "
-					+ " FROM empleado em " + "ORDER BY em.cod_empleado ASC ";
-
-			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-
-			resultSet = preparedStatement.executeQuery();
-
-			List<Empleado> results = new ArrayList<Empleado>();
-			Empleado em = null;
-			int currentCount = 0;
-
-			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
-				do {
-					em = loadNext(connection, resultSet);
-					results.add(em);
-					currentCount++;
-				} while ((currentCount < count) && resultSet.next());
-			}
-
-			return results;
-
-		} catch (SQLException e) {
-			logger.error(e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-	}
-
-	@Override
-	public Boolean exists(Connection connection, Long id) throws DataException {
-		boolean exist = false;
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
 			String queryString = " SELECT em.cod_empleado, em.usuario, em.password, em.nombre, em.apellido, em.ext_departamento, em.ext, em.supervisor, em.fecha_baja "
 					+ " FROM empleado em " + "WHERE em.cod_empleado = ? ";
 
-			preparedStatement = connection.prepareStatement(queryString);
+			preparedStatement = connection.prepareStatement(queryString, ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			
+			Long idSupervisor = es.getSupervisor();
 
 			int i = 1;
-			preparedStatement.setLong(i++, id);
+			preparedStatement.setLong(i++, idSupervisor );
 
 			resultSet = preparedStatement.executeQuery();
+			
+			Empleado em = null;
 
 			if (resultSet.next()) {
-				exist = true;
-			}
-
-		} catch (SQLException e) {
-			logger.error("Employee ID: " + id, e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeResultSet(resultSet);
-			JDBCUtils.closeStatement(preparedStatement);
-		}
-
-		return exist;
-	}
-
-	@Override
-	public long countAll(Connection connection) throws DataException {
-
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-
-			String queryString = " SELECT count(*) " + " FROM empleado ";
-
-			preparedStatement = connection.prepareStatement(queryString);
-
-			resultSet = preparedStatement.executeQuery();
-
-			int i = 1;
-			if (resultSet.next()) {
-				return resultSet.getLong(i++);
+				em = loadNext(connection, resultSet, locale);
 			} else {
-				logger.error("Unexpected condition trying to retrieve count value");
-				throw new DataException("Unexpected condition trying to retrieve count value");
+				logger.error("Sypervisor with id " + idSupervisor + "not found ",
+						Empleado.class.getName());
+				throw new InstanceNotFoundException("Supervisor with id " + idSupervisor + "not found ",
+						Empleado.class.getName());
 			}
 
+			return em;
+
 		} catch (SQLException e) {
-			logger.error(e);
+			logger.error("User: "+es.getSupervisor(), e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeResultSet(resultSet);
@@ -178,7 +161,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 	}
 
 	@Override
-	public List<Empleado> findByCriteria(Connection connection, EmpleadoCriteria criteria, int startIndex, int count)
+	public List<Empleado> findByCriteria(Connection connection, EmpleadoCriteria criteria, String locale, int startIndex, int count)
 			throws DataException {
 
 		PreparedStatement preparedStatement = null;
@@ -208,7 +191,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 				first = false;
 			}
 
-			if (criteria.getId() != null) {
+			if (criteria.getIdEmpleado() != null) {
 				addClause(queryString, first, " UPPER(em.cod_empleado) LIKE ? ");
 				first = false;
 			}
@@ -269,8 +252,8 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 
 			int i = 1;
 
-			if (criteria.getId() != null)
-				preparedStatement.setLong(i++, criteria.getId());
+			if (criteria.getIdEmpleado() != null)
+				preparedStatement.setLong(i++, criteria.getIdEmpleado());
 			if (criteria.getUsuario() != null)
 				preparedStatement.setString(i++, "%" + criteria.getUsuario() + "%");
 			if (criteria.getNombre() != null)
@@ -298,7 +281,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 
 			if ((startIndex >= 1) && resultSet.absolute(startIndex)) {
 				do {
-					em = loadNext(connection, resultSet);
+					em = loadNext(connection, resultSet, locale);
 					results.add(em);
 					currentCount++;
 				} while ((currentCount < count) && resultSet.next());
@@ -316,7 +299,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 	}
 	
 	@Override
-	public void update(Connection connection, Empleado e) 
+	public void updatePassword(Connection connection, Empleado e) 
 			throws InstanceNotFoundException, DataException {
 		PreparedStatement preparedStatement = null;
 		try {
@@ -332,20 +315,20 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 			// Fill "preparedStatement"
 			int i = 1;
 			preparedStatement.setString(i++, e.getPassword());
-			preparedStatement.setLong(i++, e.getId());
+			preparedStatement.setLong(i++, e.getIdEmpleado());
 
 			/* Execute update. */
 			int updatedRows = preparedStatement.executeUpdate();
 
 			if (updatedRows == 0) {
-				throw new InstanceNotFoundException(e.getId(), Empleado.class.getName());
+				throw new InstanceNotFoundException(e.getIdEmpleado(), Empleado.class.getName());
 			}
 
 			if (updatedRows > 1) {
 				logger.error("Duplicate row for id = '" + 
-						e.getId() + "' in table 'Empleado'");
+						e.getIdEmpleado() + "' in table 'Empleado'");
 				throw new SQLException("Duplicate row for id = '" + 
-						e.getId() + "' in table 'Empleado'");
+						e.getIdEmpleado() + "' in table 'Empleado'");
 			}                          
 
 		} catch (SQLException ex) {
@@ -364,8 +347,8 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 		queryString.append(first ? "" : "").append(clause);
 	}
 
-	private Empleado loadNext(Connection connection, ResultSet resultSet) throws SQLException, DataException {
-
+	private Empleado loadNext(Connection connection, ResultSet resultSet, String locale) throws SQLException, DataException {
+		
 		int i = 1;
 		Long cod_empleado = resultSet.getLong(i++);
 		String usuario = resultSet.getString(i++);
@@ -378,7 +361,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 		Date fecha_baja = resultSet.getDate(i++);
 
 		Empleado em = new Empleado();
-		em.setId(cod_empleado);
+		em.setIdEmpleado(cod_empleado);
 		em.setUsuario(usuario);
 		em.setPassword(password);
 		em.setNombre(nombre);
@@ -388,7 +371,7 @@ public class EmpleadoDAOImpl implements EmpleadoDAO {
 		em.setSupervisor(supervisor);
 		em.setFechaBaja(fecha_baja);
 
-		List<Idioma> idiomas = idiomaDAO.findByEmpleado(connection, em.getId());
+		List<Idioma> idiomas = idiomaDAO.findByEmpleado(connection, em.getIdEmpleado(), locale);
 		em.setIdiomas(idiomas);
 
 		return em;

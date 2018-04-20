@@ -10,13 +10,13 @@ import com.gesto.ecommerce.model.Idioma;
 
 public interface IdiomaService {
 
-	public List<Idioma> findByCliente(Long clienteId) throws DataException;
+	public List<Idioma> findAll(String locale) throws DataException;
 	
-	public List<Idioma> findByEmpleado(Long id) throws DataException;
-	
-	public List<Idioma> findByContacto(Long codContacto) throws DataException;
+	public List<Idioma> findByEmpleado(Long idEmpleado, String locale) throws DataException;
 
-	public List<Idioma> findAll(int startIndex, int pageSize) throws DataException;
+	public List<Idioma> findByCliente(Long idCliente, String locale) throws DataException;
+	
+	public List<Idioma> findByContacto(Long idContacto, String locale) throws DataException;
 
 
 }

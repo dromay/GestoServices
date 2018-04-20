@@ -13,12 +13,11 @@ import com.gesto.ecommerce.dao.util.ConnectionManager;
 import com.gesto.ecommerce.dao.util.JDBCUtils;
 import com.gesto.ecommerce.exceptions.DataException;
 import com.gesto.ecommerce.exceptions.InstanceNotFoundException;
-import com.gesto.ecommerce.model.Empresa;
 import com.gesto.ecommerce.model.Ticket;
 import com.gesto.ecommerce.service.TicketService;
 
 public class TicketServiceImpl implements TicketService {
-	
+
 	private static Logger logger = LogManager.getLogger(TicketServiceImpl.class.getName());
 
 	private TicketDAO dao = null;
@@ -26,7 +25,7 @@ public class TicketServiceImpl implements TicketService {
 	public TicketServiceImpl() {
 		dao = new TicketDAOImpl();
 	}
-	
+
 	@Override
 	public Ticket findById(Long idTicket) throws InstanceNotFoundException, DataException {
 		Connection connection = null;
@@ -39,7 +38,7 @@ public class TicketServiceImpl implements TicketService {
 			return dao.findById(connection, idTicket);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(connection, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -47,7 +46,7 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public long countAll() throws com.gesto.ecommerce.exceptions.DataException {
+	public List<Ticket> findByGestion(Long idGestion) throws com.gesto.ecommerce.exceptions.DataException {
 		Connection connection = null;
 
 		try {
@@ -55,10 +54,29 @@ public class TicketServiceImpl implements TicketService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.countAll(connection);
+			return dao.findByGestion(connection, idGestion);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(connection, e);
+			throw new DataException(e);
+		} finally {
+			JDBCUtils.closeConnection(connection);
+		}
+	}
+
+	@Override
+	public List<Ticket> findByEmpleado(Long idEmpleado) throws com.gesto.ecommerce.exceptions.DataException {
+		Connection connection = null;
+
+		try {
+
+			connection = ConnectionManager.getConnection();
+			connection.setAutoCommit(true);
+
+			return dao.findByEmpleado(connection, idEmpleado);
+
+		} catch (SQLException e) {
+			logger.error(connection, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -86,49 +104,11 @@ public class TicketServiceImpl implements TicketService {
 			return result;
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(connection, e);
 			throw new DataException(e);
 
 		} finally {
 			JDBCUtils.closeConnection(connection, commit);
-		}
-	}
-
-	@Override
-	public List<Ticket> findByGestion(Long idGestion) throws com.gesto.ecommerce.exceptions.DataException {
-		Connection connection = null;
-
-		try {
-
-			connection = ConnectionManager.getConnection();
-			connection.setAutoCommit(true);
-
-			return dao.findByGestion(connection, idGestion);
-
-		} catch (SQLException e) {
-			logger.error(connection,e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeConnection(connection);
-		}
-	}
-
-	@Override
-	public List<Ticket> findByEmpleado(Long id) throws com.gesto.ecommerce.exceptions.DataException {
-		Connection connection = null;
-
-		try {
-
-			connection = ConnectionManager.getConnection();
-			connection.setAutoCommit(true);
-
-			return dao.findByEmpleado(connection, id);
-
-		} catch (SQLException e) {
-			logger.error(connection,e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeConnection(connection);
 		}
 	}
 

@@ -22,21 +22,19 @@ import com.gesto.ecommerce.service.GestionCriteria;
 import com.gesto.ecommerce.service.GestionService;
 
 public class GestionServiceImpl implements GestionService {
-	
+
 	private static Logger logger = LogManager.getLogger(GestionServiceImpl.class.getName());
 
 	private GestionDAO dao = null;
-	private TicketDAO ticketDao= null;
+	private TicketDAO ticketDao = null;
 
 	public GestionServiceImpl() {
 		dao = new GestionDAOImpl();
 		ticketDao = new TicketDAOImpl();
 	}
-	
-
 
 	@Override
-	public long countAll() throws DataException {
+	public Gestion findById(Long idGestion, String locale) throws InstanceNotFoundException, DataException {
 
 		Connection connection = null;
 
@@ -45,10 +43,10 @@ public class GestionServiceImpl implements GestionService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.countAll(connection);
+			return dao.findById(connection, idGestion, locale);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(connection, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -57,7 +55,8 @@ public class GestionServiceImpl implements GestionService {
 	}
 
 	@Override
-	public Gestion findById(Long idGestion) throws InstanceNotFoundException, DataException {
+	public List<Gestion> findByCliente(Long clienteId, String locale, int startIndex, int pageSize)
+			throws DataException {
 
 		Connection connection = null;
 
@@ -66,31 +65,10 @@ public class GestionServiceImpl implements GestionService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.findById(connection, idGestion);
+			return dao.findByCliente(connection, clienteId, locale, startIndex, pageSize);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeConnection(connection);
-		}
-
-	}
-
-	@Override
-	public Boolean exists(Long idGestion) throws DataException {
-
-		Connection connection = null;
-
-		try {
-
-			connection = ConnectionManager.getConnection();
-			connection.setAutoCommit(true);
-
-			return dao.exists(connection, idGestion);
-
-		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(connection, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -98,8 +76,8 @@ public class GestionServiceImpl implements GestionService {
 	}
 
 	@Override
-	public List<Gestion> findByCliente(Long clienteId, int startIndex, int pageSize) throws DataException {
-
+	public List<Gestion> findByEmpleado(Long idEmpleado, String locale, int startIndex, int pageSize)
+			throws DataException {
 		Connection connection = null;
 
 		try {
@@ -107,10 +85,10 @@ public class GestionServiceImpl implements GestionService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.findByCliente(connection, clienteId, startIndex, pageSize);
+			return dao.findByEmpleado(connection, idEmpleado, locale, startIndex, pageSize);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(connection, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -118,7 +96,8 @@ public class GestionServiceImpl implements GestionService {
 	}
 
 	@Override
-	public List<Gestion> findByEmpleado(Long id, int startIndex, int pageSize) throws DataException {
+	public List<Gestion> findByCriteria(GestionCriteria criteria, String locale, int startIndex, int count)
+			throws DataException {
 		Connection connection = null;
 
 		try {
@@ -126,10 +105,10 @@ public class GestionServiceImpl implements GestionService {
 			connection = ConnectionManager.getConnection();
 			connection.setAutoCommit(true);
 
-			return dao.findByEmpleado(connection, id, startIndex, pageSize);
+			return dao.findByCriteria(connection, criteria, locale, startIndex, count);
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(connection, e);
 			throw new DataException(e);
 		} finally {
 			JDBCUtils.closeConnection(connection);
@@ -160,7 +139,7 @@ public class GestionServiceImpl implements GestionService {
 			return result;
 
 		} catch (SQLException e) {
-			logger.error(connection,e);
+			logger.error(connection, e);
 			throw new DataException(e);
 
 		} finally {
@@ -168,41 +147,4 @@ public class GestionServiceImpl implements GestionService {
 		}
 	}
 
-	@Override
-	public List<Gestion> findByCriteria(GestionCriteria gc, int startIndex, int count) throws DataException {
-		Connection connection = null;
-
-		try {
-
-			connection = ConnectionManager.getConnection();
-			connection.setAutoCommit(true);
-
-			return dao.findByCriteria(connection, gc, startIndex, count);
-
-		} catch (SQLException e) {
-			logger.error(connection,e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeConnection(connection);
-		}
-	}
-
-	@Override
-	public List<Gestion> findAll(int startIndex, int count) throws DataException {
-		Connection connection = null;
-
-		try {
-
-			connection = ConnectionManager.getConnection();
-			connection.setAutoCommit(true);
-
-			return dao.findAll(connection, startIndex, count);
-
-		} catch (SQLException e) {
-			logger.error(connection,e);
-			throw new DataException(e);
-		} finally {
-			JDBCUtils.closeConnection(connection);
-		}
-	}
 }
